@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+import MainLayout from './layouts/MainLayout';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Chat from './pages/Chat';
+import Explore from './pages/Explore';
+import NotFound from './pages/NotFound';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user } = useSelector((state) => state.auth);
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Routes>
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+        
+        {/* Protected routes with layout */}
+        <Route element={!user ? <MainLayout /> : <Navigate to="/login" />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile/:username" element={<Profile />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/create" element={<div className="text-white p-4 pt-20 lg:pt-0">Create Post Page - Coming Soon</div>} />
+          <Route path="/notifications" element={<div className="text-white p-4 pt-20 lg:pt-0">Notifications Page - Coming Soon</div>} />
+        </Route>
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      
+      <ToastContainer 
+        position="top-right" 
+        theme="dark"
+        autoClose={3000}
+      />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
