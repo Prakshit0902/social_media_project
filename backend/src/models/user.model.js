@@ -16,6 +16,7 @@ const userSchema = Schema(
             required : true,
             trim : true,
             unique : true,
+            match: [/.+\@.+\..+/, 'Please fill a valid email address']
         },
         fullname : {
             type : String,
@@ -23,7 +24,8 @@ const userSchema = Schema(
         },
         password : {
             type : String,
-            required : true
+            required : [true,'Password is required'],
+            minLength : 6
         },
         profilePicture : {
             type : String,
@@ -44,10 +46,14 @@ const userSchema = Schema(
             type : Schema.Types.ObjectId,
             ref : 'User'
         }],
-        posts : {
+        followRequests : [{
+            type : Schema.Types.ObjectId,
+            ref : 'User'
+        }],
+        posts : [{
             type : Schema.Types.ObjectId,
             ref : 'Post'
-        },
+        }],
         stories : [{
             type : Schema.Types.ObjectId,
             ref : 'Story'
