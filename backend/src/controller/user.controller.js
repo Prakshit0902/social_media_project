@@ -25,7 +25,9 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 }
 
 const registerUser = asyncHandler(async (req,res) => {
-    const {username,email,password,fullname,profilePicture,gender,dob} = req.body
+    console.log('user registeration started')
+    
+    const {username,email,password,fullname} = req.body
 
     if ([username,email,password].some((field) => field.trim() === '')){
         throw new ApiError(400,'All fields are required')
@@ -39,14 +41,9 @@ const registerUser = asyncHandler(async (req,res) => {
         throw new ApiError(409, "User with email or username already exists")
     }
 
-    const profilePictureLocalPath = req.files?.profilePicture[0]?.path
-
-    const pfp = uploadOnCloudinary(profilePictureLocalPath)
-
 
     const user = await User.create({
         fullname,username,
-        profilePicture : pfp.url,
         email,
         password
     })
@@ -57,6 +54,8 @@ const registerUser = asyncHandler(async (req,res) => {
         throw new ApiError(500,'Something went wrong while registering user')
     }
 
+    console.log('user registered successfully')
+    
     return res.status(200).json(
         new ApiResponse(200,createdUser,'User created successfully')
     )
@@ -65,11 +64,16 @@ const registerUser = asyncHandler(async (req,res) => {
 
 const registerBasicUserDetails = asyncHandler(async (req,res) => {
     const {dob,gender} = req.body
+
+    const profilePictureLocalPath = req.files?.profilePicture[0]?.path
+
+    const pfp = uploadOnCloudinary(profilePictureLocalPath)
     
     const user = await User.findById(req.user._id).select('-password -refreshToken')
     
     user.dob = dob
     user.gender = gender
+    user.profilePicture = pfp.url
 
     await user.save({validateBeforeSave : false})
 
@@ -80,6 +84,8 @@ const registerBasicUserDetails = asyncHandler(async (req,res) => {
 })
 
 const loginUser = asyncHandler(async (req,res) => {
+    console.log('logging in user')
+    
     const {username,email,password} = req.body
     
     if (!(username || email)){
@@ -111,6 +117,9 @@ const loginUser = asyncHandler(async (req,res) => {
         httpOnly : true,
         secure : true
     }
+
+    console.log('logged in successfully')
+    
 
     return res
     .status(200)

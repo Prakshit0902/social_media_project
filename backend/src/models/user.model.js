@@ -6,7 +6,7 @@ const userSchema = Schema(
     {
         username : {
             type : String,
-            required : true,
+            // required : true,
             lowercase : true,
             trim : true,
             unique : true,
@@ -91,7 +91,7 @@ userSchema.index({ username: 1 })
 userSchema.index({ email: 1 })
 
 userSchema.pre('save',async function(next){
-    if (!this,isModified('password')) {
+    if (!this.isModified('password')) {
         return next()
     }
 

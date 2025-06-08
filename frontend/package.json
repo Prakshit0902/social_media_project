@@ -8,15 +8,21 @@
     "dev1": "vite --host --port 8888",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview --port 3000"
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.7",
+    "@reduxjs/toolkit": "^2.8.2",
     "@tabler/icons-react": "^3.34.0",
     "@tailwindcss/vite": "^4.1.8",
+    "axios": "^1.9.0",
     "clsx": "^2.1.1",
     "motion": "^12.16.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.6.2",
+    "simplex-noise": "^4.0.3",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.8"
   },
@@ -29,7 +35,6 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "rollup-plugin-visualizer": "^6.0.1",
     "vite": "^6.3.5"
   }
 }

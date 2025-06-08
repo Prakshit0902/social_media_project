@@ -1,19 +1,20 @@
 import {Router} from 'express'
-import { approveFollowRequest, changePassword, followAnUser, getCurrentUser, getUserProfile, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, refreshAccessToken, registerBasicUserDetails, registerUser, unfollowAnUser, updateAccountDetails, updateBio, updateUserProfilePicture } from '../../controller/user.controller'
-import { verifyJWT } from '../../middlewares/auth.middleware'
+import { approveFollowRequest, changePassword, followAnUser, getCurrentUser, getUserProfile, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, refreshAccessToken, registerBasicUserDetails, registerUser, unfollowAnUser, updateAccountDetails, updateBio, updateUserProfilePicture } from '../../controller/user.controller.js'
+import { verifyJWT } from '../../middlewares/auth.middleware.js'    
+import {upload} from "../../middlewares/multer.middleware.js"
 
 const router = Router()
 
-router.route('/register').post(
+router.route('/register-basic').post(verifyJWT,
     upload.fields([
         {
             name : 'profilePicture',
             maxCount : 1
         }
-    ] , registerUser)
+    ] , registerBasicUserDetails)
 )
 
-router.route('/register-basic').post(verifyJWT,registerBasicUserDetails)
+router.route('/register').post(registerUser)
 router.route('/login').post(loginUser)
 router.route('/logout').post(verifyJWT,logoutUser)
 router.route('/refresh-access-token').post(refreshAccessToken)
