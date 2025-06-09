@@ -16,19 +16,24 @@ export function LoginForm() {
   const dispatch = useDispatch()
   const {loading,error,user} = useSelector((state) => state.user)
 
-  const [formData,setFormData] = useState({email : '' , password : ''})
+  const [formData,setFormData] = useState({identifier : '' , password : ''})
 
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(loginUser(formData))
   }
 
-  const handleChange = useCallback((e) => {
-    setFormData({...formData , [e.target.id] : e.target.value})
-  } , [])
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  }
 
   const signUpButtonClick = () => {
     navigate('/register')
+  }
+
+  if (user){
+    navigate('/dashboard')
   }
   return (
     <div
@@ -53,8 +58,8 @@ export function LoginForm() {
           </LabelInputContainer> */}
         </div>
         <LabelInputContainer className="mb-4">
-          <Label htmlFor="email">Email Address</Label>
-          <Input className = 'text-lg' id="email" placeholder="yourmail@email.com" type="email" onChange = {handleChange} />
+          <Label htmlFor="identifier">Email Address or Username</Label>
+          <Input className = 'text-lg' id="identifier" placeholder="yourmail@email.com" type="text" onChange = {handleChange} />
         </LabelInputContainer>
         <LabelInputContainer className="mb-4">
           <Label htmlFor="password">Password</Label>

@@ -10,12 +10,14 @@ const userSchema = Schema(
             lowercase : true,
             trim : true,
             unique : true,
+            index : true
         },
         email : {
             type : String,
             required : true,
             trim : true,
             unique : true,
+            index : true,
             match: [/.+\@.+\..+/, 'Please fill a valid email address']
         },
         fullname : {
@@ -87,8 +89,6 @@ const userSchema = Schema(
     }
 )
 
-userSchema.index({ username: 1 })
-userSchema.index({ email: 1 })
 
 userSchema.pre('save',async function(next){
     if (!this.isModified('password')) {

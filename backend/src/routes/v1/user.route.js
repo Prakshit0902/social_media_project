@@ -13,6 +13,7 @@ router.route('/register-basic').post(verifyJWT,
         }
     ] , registerBasicUserDetails)
 )
+router.route('/current-user').get(verifyJWT,getCurrentUser) 
 
 router.route('/register').post(registerUser)
 router.route('/login').post(loginUser)
@@ -21,7 +22,6 @@ router.route('/refresh-access-token').post(refreshAccessToken)
 router.route('/update-account-details').post(verifyJWT,updateAccountDetails)
 router.route('/change-password').post(verifyJWT,changePassword)
 router.route('/update-profile-picture').post(verifyJWT,updateUserProfilePicture)
-router.route('/current-user').post(verifyJWT,getCurrentUser)
 router.route('/profile/:id').post(verifyJWT,getUserProfile)
 
 router.route('/update-bio').post(verifyJWT,updateBio)

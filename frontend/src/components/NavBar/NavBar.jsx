@@ -1,12 +1,17 @@
 import React from "react";
 
 import {
-  IconBrandGithub,
-  IconBrandX,
+  IconBell,
+  IconCircleDashed,
+  IconCircleDotted,
   IconExchange,
   IconHome,
-  IconNewSection,
-  IconTerminal2,
+  IconMessageCircle,
+  IconPhoto,
+  IconPlus,
+  IconSearch,
+  IconStack,
+  IconUser,
 } from "@tabler/icons-react";
 import { FloatingDock } from "../ui/floating-dock";
 
@@ -17,62 +22,58 @@ export function NavBar() {
       icon: (
         <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "#",
+      href: "#",  
     },
 
     {
-      title: "Products",
+      title: "Explore",
       icon: (
-        <IconTerminal2 className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconSearch className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
       href: "#",
     },
     {
-      title: "Components",
+      title: "Chat",
       icon: (
-        <IconNewSection className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconMessageCircle className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
       href: "#",
     },
     {
-      title: "Aceternity UI",
+      title: "Create",
       icon: (
-        <img
-          src="https://assets.aceternity.com/logo-dark.png"
-          width={20}
-          height={20}
-          alt="Aceternity Logo" />
+        <IconPlus className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
       href: "#",
     },
     {
-      title: "Changelog",
+      title: "Stories",
       icon: (
-        <IconExchange className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconCircleDotted className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
       href: "#",
     },
 
     {
-      title: "Twitter",
+      title: "Notifications",
       icon: (
-        <IconBrandX className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconBell className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
       href: "#",
     },
     {
-      title: "GitHub",
+      title: "Profile",
       icon: (
-        <IconBrandGithub className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconUser className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
       href: "#",
     },
   ];
   return (
-    <div className="flex justify-center items-baseline-last h-[35rem] w-full">
+    <div className="flex justify-center items-end h-screen w-full">
       <FloatingDock
-        // only for demo, remove for production
-        mobileClassName="translate-y-20"
+        desktopClassName="mx-auto w-fit"
+        mobileClassName="w-full"
         items={links} />
     </div>
   );

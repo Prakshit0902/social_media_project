@@ -86,18 +86,18 @@ const registerBasicUserDetails = asyncHandler(async (req,res) => {
 const loginUser = asyncHandler(async (req,res) => {
     console.log('logging in user')
     
-    const {username,email,password} = req.body
+    const {identifier,password} = req.body
+    console.log(req.body)
     
-    if (!(username || email)){
-        throw new ApiError(400,'Email or username is required')
-    }
-
     if (!password){
         throw new ApiError(400,'password is required')
     }
-
+    
+    if (!identifier){
+        throw new ApiError(400,'email or username is required')
+    }
     const user = await User.findOne({
-        $or : [{username},{email}]
+        $or: [{ email: identifier }, { username: identifier }],
     })
 
     if (!user){
@@ -230,6 +230,8 @@ const changePassword = asyncHandler(async (req,res) => {
 
 
 const getCurrentUser = asyncHandler(async(req, res) => {
+    console.log('getting current user ')
+    
     return res
     .status(200)
     .json(new ApiResponse(
