@@ -70,7 +70,7 @@ export function NavBar() {
     },
   ];
   return (
-    <div className="flex justify-center items-end h-screen w-full">
+      <div className="flex justify-center w-full">  
       <FloatingDock
         desktopClassName="mx-auto w-fit"
         mobileClassName="w-full"

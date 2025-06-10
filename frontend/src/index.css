@@ -11,4 +11,58 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+
 }
+
+/* @supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+} */
+
+body {
+  position: relative;
+  overflow-y: auto;
+}
+
+/* Fix for 100vh on mobile browsers */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+  }
+}
+
+
+
+#root {
+  min-height: 100%;
+}
+
+/* Hide scrollbar for stories section */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+
+@theme inline {
+  --animate-aurora: aurora 60s linear infinite;
+  @keyframes aurora {
+    from {
+      background-position:
+        50% 50%,
+        50% 50%;
+    }
+    to {
+      background-position:
+        350% 50%,
+        350% 50%;
+    }
+  }
+} 

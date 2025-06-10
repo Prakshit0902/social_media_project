@@ -1,0 +1,77 @@
+"use client";
+
+import React, { useState } from "react";
+
+import { CardBody, CardContainer, CardItem } from "../ui/3d-card";
+import { IconHeart, IconHeartFilled, IconMessageCircle, IconShare3 } from "@tabler/icons-react";
+
+
+export function PostCard() {
+    const [likes,setLike] = useState(0)
+    const [liked,setLiked] = useState(false)
+
+    const likeButtonClick = (e) => {
+        if (!liked){
+            setLike(likes + 1)
+            setLiked(!liked) 
+        }
+        else {
+            setLike(likes - 1)
+            setLiked(!liked) 
+        }
+
+    }
+
+
+  return (
+    <CardContainer className="inter-var">
+      <CardBody
+        className=" bg-gray-50 relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-auto sm:w-[30rem] h-auto rounded-xl p-6 border  ">
+        <CardItem
+          translateZ="50"
+          className="flex flex-row justify-center text-xl font-bold text-neutral-600 dark:text-white">
+            <img
+                src="https://res-console.cloudinary.com/dikdl6cuv/thumbnails/v1/image/upload/v1749129526/dXNlci1kZWZhdWx0X3cxemV4NA==/drilldown"
+                height="36"
+                width="36"
+                alt="thumbnail"
+                className="mr-4" />
+            <p>
+                username_00
+            </p>
+
+        </CardItem>
+        <CardItem translateZ="100" className="w-full mt-4">
+          <img
+            src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            height="1000"
+            width="1000"
+            className="h-60 w-full object-cover rounded-xl group-hover/card:shadow-xl"
+            alt="thumbnail" 
+            onDoubleClick={likeButtonClick}/>
+        </CardItem>
+        
+        <CardItem translateZ="100" >
+
+            <div className="flex flex-row mt-10 text-neutral-500 dark:text-neutral-300" >
+                {liked? <IconHeartFilled className=" text-red-500" onClick={likeButtonClick}/>
+                :<IconHeart className=" text-neutral-500 dark:text-neutral-300" onClick={likeButtonClick}/>} 
+                
+                    <span className="ml-1 mr-1">{likes}</span>
+
+                <IconMessageCircle className=" text-neutral-500 dark:text-neutral-300"/>
+                    <span className="ml-1 mr-1">10</span>
+                <IconShare3 className=" text-neutral-500 dark:text-neutral-300"/>
+            </div>
+        </CardItem>
+        <CardItem
+          as="p"
+          translateZ="60"
+          className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300">
+          Hover over this card to unleash the power of CSS perspective
+        </CardItem>
+      </CardBody>
+    </CardContainer>
+    
+  );
+}

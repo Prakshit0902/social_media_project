@@ -6,6 +6,7 @@ import AuthLayout from './layouts/AuthLayout';
 import { DashBoardLayout } from './layouts/DashBoardLayout';
 import { LoginForm } from './components/LandingPage/LoginForm';
 import { SignUpForm } from './components/LandingPage/SignUpForm';
+import { Home } from './components/DashBoard/Home';
 
 function App() {
   const dispatch = useDispatch();
@@ -26,7 +27,9 @@ function App() {
           <Route index element={<LoginForm />} />
           <Route path="register" element={<SignUpForm />} />
         </Route>
-        <Route path="/dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} />
+        <Route path="/dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} >
+          <Route  index element = {<Home />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
