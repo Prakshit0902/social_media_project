@@ -5,6 +5,7 @@ import { asyncHandler } from '../utils/AsyncHandler.js'
 import { uploadOnCloudinary } from '../utils/cloudinary.js'
 import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
+import { Post } from '../models/post.model.js'
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -492,6 +493,23 @@ const approveFollowRequest = asyncHandler(async (req,res) => {
 })
 
 
+const exploreSection = asyncHandler(async (req,res) => {
+    console.log('this is explore section called ')
+    
+    const posts = await Post.aggregate([
+        {
+            $sample : {
+                size : 10
+            }
+        }
+    ])
+    
+    return res.status(200).json(
+        new ApiResponse(200,posts,'explore section')
+    )
+})
+
+
 export {registerUser,
     registerBasicUserDetails,
     loginUser,
@@ -507,4 +525,5 @@ export {registerUser,
     makeProfileVerified,
     followAnUser,
     unfollowAnUser,
-    approveFollowRequest}
+    approveFollowRequest,
+    exploreSection}

@@ -11,6 +11,7 @@
   "author": "Prakshit Suthar",
   "license": "ISC",
   "dependencies": {
+    "@faker-js/faker": "^9.8.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.6.1",
     "cookie-parser": "^1.4.7",

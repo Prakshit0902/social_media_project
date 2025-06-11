@@ -22,7 +22,7 @@ export function NavBar() {
       icon: (
         <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "#",  
+      href: "/dashboard",  
     },
 
     {
@@ -30,7 +30,7 @@ export function NavBar() {
       icon: (
         <IconSearch className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "#",
+      href: "/dashboard/explore",
     },
     {
       title: "Chat",

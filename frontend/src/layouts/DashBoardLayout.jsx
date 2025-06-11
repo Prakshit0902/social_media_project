@@ -3,8 +3,11 @@ import { Outlet } from "react-router-dom";
 import { NavBar } from "../components/NavBar/NavBar";
 import { AuroraBackground } from "../components/ui/aurora-background";
 import { motion } from "motion/react";
+import { ExpandableCard } from "../components/UserSuggestionSidebar/ExpandableCard";
 
 function DashBoardLayout() {
+
+  const showExpandableCard = location.pathname === "/dashboard"
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
 
@@ -20,15 +23,7 @@ function DashBoardLayout() {
                   }}
                   className="relative flex flex-col gap-4 items-center justify-center px-4"
                 >
-                  {/* <div className="text-3xl md:text-7xl font-bold dark:text-white text-center">
-                    Background lights are cool you know.
-                  </div>
-                  <div className="font-extralight text-base md:text-4xl dark:text-neutral-200 py-4">
-                    And this, is chemical burn.
-                  </div>
-                  <button className="bg-black dark:bg-white rounded-full w-fit text-white dark:text-black px-4 py-2">
-                    Debug now
-                  </button> */}
+
                 </motion.div>
               </AuroraBackground>
             </div>
@@ -37,6 +32,9 @@ function DashBoardLayout() {
         <Outlet />
       </main>
 
+      {showExpandableCard && <div className="fixed top-0 right-0 z-50" >
+        <ExpandableCard />
+      </div>}
 
       {/* Fixed navbar at bottom */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
