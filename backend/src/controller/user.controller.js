@@ -138,6 +138,8 @@ const loginUser = asyncHandler(async (req,res) => {
 })
 
 const logoutUser = asyncHandler(async (req,res) => {
+    console.log('logging out ');
+    
     await User.findByIdAndUpdate(req.user._id,
         {
             $unset : {
@@ -499,7 +501,7 @@ const exploreSection = asyncHandler(async (req,res) => {
     const posts = await Post.aggregate([
         {
             $sample : {
-                size : 10
+                size : 20
             }
         }
     ])

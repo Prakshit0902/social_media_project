@@ -1,16 +1,15 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { NavBar } from "../components/NavBar/NavBar";
 import { AuroraBackground } from "../components/ui/aurora-background";
 import { motion } from "motion/react";
 import { ExpandableCard } from "../components/UserSuggestionSidebar/ExpandableCard";
 
 function DashBoardLayout() {
-
+  const location = useLocation()
   const showExpandableCard = location.pathname === "/dashboard"
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-
             <div className="fixed inset-0 w-full h-full z-0">
               <AuroraBackground>
                 <motion.div
@@ -37,7 +36,7 @@ function DashBoardLayout() {
       </div>}
 
       {/* Fixed navbar at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="fixed bottom-0 z-50">
         <NavBar />
       </div>
     </div>

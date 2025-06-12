@@ -2,27 +2,33 @@ import React from "react";
 
 import {
   IconBell,
-  IconCircleDashed,
-  IconCircleDotted,
-  IconExchange,
   IconHome,
+  IconLogout,
   IconMessageCircle,
-  IconPhoto,
   IconPlus,
   IconSearch,
-  IconStack,
   IconUser,
 } from "@tabler/icons-react";
 import { FloatingDock } from "../ui/floating-dock";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logoutUser } from "../../store/slices/userSlice";
+
 
 export function NavBar() {
+
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+
   const links = [
     {
       title: "Home",
       icon: (
         <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "/dashboard",  
+      onClick : () => {
+        navigate('/dashboard')
+      }  
     },
 
     {
@@ -30,7 +36,10 @@ export function NavBar() {
       icon: (
         <IconSearch className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "/dashboard/explore",
+      // href: "/dashboard/explore",
+      onClick : () => {
+        navigate('/dashboard/explore')
+      }  
     },
     {
       title: "Chat",
@@ -47,14 +56,6 @@ export function NavBar() {
       href: "#",
     },
     {
-      title: "Stories",
-      icon: (
-        <IconCircleDotted className="h-full w-full text-neutral-500 dark:text-neutral-300" />
-      ),
-      href: "#",
-    },
-
-    {
       title: "Notifications",
       icon: (
         <IconBell className="h-full w-full text-neutral-500 dark:text-neutral-300" />
@@ -68,13 +69,25 @@ export function NavBar() {
       ),
       href: "#",
     },
+    {
+      title: "Logout",
+      icon: (
+        <IconLogout className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+      ),
+      onClick: () => {
+        dispatch(logoutUser())
+      },
+    },
   ];
   return (
-      <div className="flex justify-center w-full">  
-      <FloatingDock
-        desktopClassName="mx-auto w-fit"
-        mobileClassName="w-full"
-        items={links} />
-    </div>
+    <>
+
+        <div className="flex justify-center w-full">  
+        <FloatingDock
+          desktopClassName="mx-auto w-fit"
+          mobileClassName="mx-0 w-fit"
+          items={links} />
+      </div>
+    </>
   );
 }

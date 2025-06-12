@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useOutsideClick } from "../../hooks/use-outside-click";
 
 export function ExpandableCard() {
+  
   const [active, setActive] = useState(null);
   const ref = useRef(null);
   const id = useId();
@@ -114,7 +115,9 @@ export function ExpandableCard() {
           </div>
         ) : null}
       </AnimatePresence>
-      <ul className="max-w-2xl mx-auto w-full gap-4">
+      {/* Hide this section on mobile/small screens */}
+      {/* <ul className="hidden md:block max-w-2xl mx-auto w-full gap-4"> */}
+        <ul className="hidden lg:block max-w-2xl mx-auto w-full gap-4">
         {cards.map((card, index) => (
           <motion.div
             layoutId={`card-${card.title}-${id}`}

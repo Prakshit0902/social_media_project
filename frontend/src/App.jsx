@@ -24,11 +24,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <AuthLayout />}>
+        <Route path="/" element={user ? <Navigate to="dashboard" /> : <AuthLayout />}>
           <Route index element={<LoginForm />} />
           <Route path="register" element={<SignUpForm />} />
         </Route>
-        <Route path="/dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} >
+        <Route path="dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} >
           <Route  index element = {<Home />} />
           <Route path='explore' element = {<ExploreSection/>} />
         </Route>

@@ -58,8 +58,20 @@ export const loginUser = createAsyncThunk(
       }
     } catch (error) {
         const message = error.response?.data?.message || error?.messsage || 'Unknown error occured during login' 
-        console.log(message)
         return rejectedWithValue(message)     
+    }
+  }
+)
+
+export const logoutUser = createAsyncThunk(
+  'user/logout',
+  async (_,{rejectedWithValue}) => {
+    try {
+        const response = await axios.post('/api/v1/user/logout', {} , {withCredentials : true})
+        return response.data
+    } catch (error) {
+        const message = error.response?.data?.message || error?.messsage || 'Unknown error occured during login' 
+        return rejectedWithValue(message)
     }
   }
 )
@@ -119,6 +131,11 @@ const userSlice = createSlice({
       state.isAuthenticated = false;
       state.authChecked = true;   
       state.loading = false;
+    })
+    .addCase(logoutUser.fulfilled, (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+      // Clear any other user-related state
     })
   }
 }
