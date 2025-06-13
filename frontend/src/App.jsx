@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
-import { fetchCurrentUser } from './store/slices/userSlice'; // update path accordingly
+import { fetchCurrentUser } from './store/slices/authSlice'; // update path accordingly
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AuthLayout from './layouts/AuthLayout';
 import { DashBoardLayout } from './layouts/DashBoardLayout';
@@ -11,7 +11,7 @@ import { ExploreSection } from './components/ExploreSection/ExploreSection';
 
 function App() {
   const dispatch = useDispatch();
-  const { user, authChecked } = useSelector((state) => state.user);
+  const { user, authChecked } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchCurrentUser());

@@ -116,7 +116,13 @@ const loginUser = asyncHandler(async (req,res) => {
 
     const options = {
         httpOnly : true,
-        secure : true
+        secure : true,
+        maxAge : 1* 24 * 60 * 60 * 1000 
+    }
+    const optionsRefresh = {
+        httpOnly : true,
+        secure : true,
+        maxAge: 10* 24 * 60 * 60 * 1000
     }
 
     console.log('logged in successfully')
@@ -125,7 +131,7 @@ const loginUser = asyncHandler(async (req,res) => {
     return res
     .status(200)
     .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("refreshToken", refreshToken, optionsRefresh)
     .json(
         new ApiResponse(
             200, 
@@ -187,9 +193,15 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             
         }
     
+        const optionsRefresh = {
+            httpOnly: true,
+            secure: true,
+            maxAge: 10 * 24 * 60 * 60 * 1000
+        }
         const options = {
             httpOnly: true,
-            secure: true
+            secure: true,
+            maxAge: 1 * 24 * 60 * 60 * 1000
         }
     
         const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
@@ -197,7 +209,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         return res
         .status(200)
         .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", newRefreshToken, options)
+        .cookie("refreshToken", newRefreshToken, optionsRefresh)
         .json(
             new ApiResponse(
                 200, 
@@ -346,10 +358,12 @@ const makeProfilePrivateOrPublic = asyncHandler(async (req,res) => {
 
 const getUserProfile = asyncHandler(async (req,res) => {
     const user = await User.findById(req.user._id)
+    .select("-password -refreshToken")
+    .lean()
 
     const followerCount = user.followers.length
     const followingCount = user.following.length
-
+    const username = user.username
     const postCount = user.posts.length
 
     return res.status(200)
@@ -357,9 +371,40 @@ const getUserProfile = asyncHandler(async (req,res) => {
         new ApiResponse(200,{
             followerCount,
             followingCount,
-            postCount
+            postCount,
+            username
         },'user profile fetched successfully')
     )
+})
+
+const getUserProfilesById = asyncHandler(async (req,res) => {
+    console.log('getting user profile by id ')
+    
+    const {ids} = req.body
+    const users = await User.find(
+        {
+            _id : {
+                $in : ids
+            }
+        }
+    ).select('username profilePicture')
+
+    if (!users){
+        console.log('error');
+        
+        throw new ApiError(400,'Cant find user')
+    }
+
+    // console.log(users)
+    
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200,{
+            users
+        },'user profiles fetched successfully')
+    )
+
 })
 
 const followAnUser = asyncHandler(async (req,res) => {
@@ -511,6 +556,21 @@ const exploreSection = asyncHandler(async (req,res) => {
     )
 })
 
+const postFeeds = asyncHandler(async (req,res) => {
+    const posts = await Post.aggregate([
+        {
+            $sample : {
+                size : 5
+            }
+        }
+    ])
+
+    return res.status(200).json(
+        new ApiResponse(200,posts,'posts feed')
+    )
+    
+})
+
 
 export {registerUser,
     registerBasicUserDetails,
@@ -523,9 +583,11 @@ export {registerUser,
     refreshAccessToken,
     updateBio,
     getUserProfile,
+    getUserProfilesById,
     makeProfilePrivateOrPublic,
     makeProfileVerified,
     followAnUser,
     unfollowAnUser,
     approveFollowRequest,
-    exploreSection}
+    exploreSection,
+    postFeeds}

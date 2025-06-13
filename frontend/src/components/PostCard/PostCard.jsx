@@ -6,7 +6,7 @@ import { CardBody, CardContainer, CardItem } from "../ui/3d-card";
 import { IconHeart, IconHeartFilled, IconMessageCircle, IconShare3 } from "@tabler/icons-react";
 
 
-export function PostCard() {
+export function PostCard({userProfilePicture,postContent,postDescription,postLikes,postComments,postShares}) {
     const [likes,setLike] = useState(0)
     const [liked,setLiked] = useState(false)
 

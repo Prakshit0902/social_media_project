@@ -1,35 +1,34 @@
-import axios from "axios";
 import { FocusCards } from "../ui/focus-cards";
-import { useEffect, useState } from "react";
-
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserExploreFeed } from "../../store/slices/feedSlice";
+import { getUserProfilesByIds } from "../../store/slices/userSlice";
 
 export function ExploreSection() {
-    const [response,setResponse] = useState({})
+  const dispatch = useDispatch();
 
-    useEffect(() => {
-    const fetchExploreData = async () => {
-        try {
-        const t = await axios.get('/api/v1/user/explore');
-        setResponse(t.data.data);
-        } catch (error) {
-        console.error('Error fetching explore data:', error);
-        }
-    };
+  const posts        = useSelector(state => state.feed.posts);
+  const profilesById = useSelector(state => state.user?.profilesById) || {};
 
-    fetchExploreData()
-    }, []);
+  /* 1. Fetch explore feed on mount */
+  useEffect(() => { dispatch(getUserExploreFeed()); }, [dispatch]);
 
-    console.log(response.length)
-
-    const cards = []
-    
-    for (let i = 0; i < response.length; i++){
-        cards[i] = {
-            title : response[i].owner,
-            src : response[i].postContent
-        }
+  /* 2. When posts arrive, fetch the missing owner profiles */
+  useEffect(() => {
+    if (Array.isArray(posts) && posts.length) {
+      const ownerIds = [...new Set(posts.map(p => p.owner))];
+      dispatch(getUserProfilesByIds(ownerIds));
     }
+  }, [dispatch, posts]);
 
+  /* 3. Build card list */
+  const cards = Array.isArray(posts)
+    ? posts.map((post, idx) => ({
+        key  : post._id || `${post.owner}-${idx}`,        // unique
+        title: profilesById[post.owner]?.username ?? "Loading…",
+        src  : post.postContent
+      }))
+    : [];
 
   return <FocusCards cards={cards} />;
 }

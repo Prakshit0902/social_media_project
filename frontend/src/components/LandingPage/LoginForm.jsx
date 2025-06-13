@@ -7,7 +7,7 @@ import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { useState } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { useDispatch , useSelector} from "react-redux";
-import { loginUser } from "../../store/slices/userSlice";
+import { loginUser } from "../../store/slices/authSlice";
 
 
 export function LoginForm() {

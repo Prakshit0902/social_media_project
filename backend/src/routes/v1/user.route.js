@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import { approveFollowRequest, changePassword, exploreSection, followAnUser, getCurrentUser, getUserProfile, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, refreshAccessToken, registerBasicUserDetails, registerUser, unfollowAnUser, updateAccountDetails, updateBio, updateUserProfilePicture } from '../../controller/user.controller.js'
+import { approveFollowRequest, changePassword, exploreSection, followAnUser, getCurrentUser, getUserProfile, getUserProfilesById, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, postFeeds, refreshAccessToken, registerBasicUserDetails, registerUser, unfollowAnUser, updateAccountDetails, updateBio, updateUserProfilePicture } from '../../controller/user.controller.js'
 import { verifyJWT } from '../../middlewares/auth.middleware.js'    
 import {upload} from "../../middlewares/multer.middleware.js"
 
@@ -23,6 +23,7 @@ router.route('/update-account-details').post(verifyJWT,updateAccountDetails)
 router.route('/change-password').post(verifyJWT,changePassword)
 router.route('/update-profile-picture').post(verifyJWT,updateUserProfilePicture)
 router.route('/profile/:id').post(verifyJWT,getUserProfile)
+router.route('/profiles').post(verifyJWT,getUserProfilesById)
 
 router.route('/update-bio').post(verifyJWT,updateBio)
 router.route('/profile-privacy').post(verifyJWT,makeProfilePrivateOrPublic)
@@ -33,6 +34,7 @@ router.route('/unfollow-user').post(verifyJWT,unfollowAnUser)
 router.route('/approve-follow-request').post(verifyJWT,approveFollowRequest)
 
 router.route('/explore').get(verifyJWT,exploreSection)
+router.route('/post-feed').get(verifyJWT,postFeeds)
 
 
 export default router

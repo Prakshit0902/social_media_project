@@ -1,3 +1,6 @@
+import('react-devtools-core').then(mod =>
+  mod.connectToDevTools({ host: '192.168.252.186', port: 8097 })
+)
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

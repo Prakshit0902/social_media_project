@@ -12,7 +12,7 @@ import {
 import { FloatingDock } from "../ui/floating-dock";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { logoutUser } from "../../store/slices/userSlice";
+import { logoutUser } from "../../store/slices/authSlice";
 
 
 export function NavBar() {
