@@ -24,7 +24,7 @@ export const getUserExploreFeed = createAsyncThunk(
     'user/get-explore-feed',
     async (_,{rejectWithValue}) => {
         try {
-            const response = await axios.get('/api/v1/user/explore')
+            const response = await axios.get('/api/v1/user/explore', {withCredentials : true})
             return response.data
         } catch (error) {
             const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
@@ -54,20 +54,27 @@ const feedSlice = createSlice({
         .addCase(getUserPostFeed.rejected, (state, action) => {
             state.loading = false
             state.error = action.payload
+            console.log(action.payload);
+            
         })
         .addCase(getUserExploreFeed.pending , (state) => {
             state.loading = true
             state.error = null
+            console.log(action.payload);
+
         })
 
         .addCase(getUserExploreFeed.fulfilled, (state,action) => {
             state.loading = false
             state.error = null
             state.posts = action.payload.data
+            console.log(action.payload);
+            
         })
         .addCase(getUserExploreFeed.rejected, (state, action) => {
             state.loading = false
             state.error = action.payload
+            console.log(action.payload);
         })
     }
 })
