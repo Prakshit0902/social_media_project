@@ -21,11 +21,12 @@ export const getUserPostFeed = createAsyncThunk(
     }
 )
 export const getUserExploreFeed = createAsyncThunk(
-    'user/get-explore-feed',
+    'user/explore',
     async (_,{rejectWithValue}) => {
         try {
             const response = await axios.get('/api/v1/user/explore', {withCredentials : true})
-            return response.data
+
+            return response.data.data
         } catch (error) {
             const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
             console.log(message)
@@ -58,13 +59,16 @@ const feedSlice = createSlice({
             
         })
         .addCase(getUserExploreFeed.pending , (state) => {
+            console.log('pending');
+            
             state.loading = true
             state.error = null
-            console.log(action.payload);
+            // console.log(action.payload);
 
         })
 
         .addCase(getUserExploreFeed.fulfilled, (state,action) => {
+            console.log('fulfilled');
             state.loading = false
             state.error = null
             state.posts = action.payload.data
@@ -72,8 +76,11 @@ const feedSlice = createSlice({
             
         })
         .addCase(getUserExploreFeed.rejected, (state, action) => {
+            console.log('rejected');
             state.loading = false
             state.error = action.payload
+            console.error('Step 18: Rejected case triggered');
+            console.error('Step 19: Error payload:', action.payload);
             console.log(action.payload);
         })
     }

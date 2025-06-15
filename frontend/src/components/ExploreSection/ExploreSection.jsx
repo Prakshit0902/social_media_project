@@ -2,43 +2,42 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { FocusCards } from '../ui/focus-cards';
 import { getUserExploreFeed } from '../../store/slices/feedSlice';
-import { getUserProfilesByIds } from '../../store/slices/userSlice';
+import { getUserProfilesByIds } from '../../store/slices/userSlice'; 
 
 export function ExploreSection() {
   const dispatch = useDispatch();
 
-  // ---------------------------------------------------------------------------
-  // Redux state
-  // ---------------------------------------------------------------------------
-  const { posts }          = useSelector((state) => state.feed);
-  const { profilesById = {} } = useSelector((state) => state.user); // default {}
+  
+  const { posts }          = useSelector((state) => state.feed)
+  const { profilesById = {} } = useSelector((state) => state.user)
 
-  // ---------------------------------------------------------------------------
-  // Side effects
-  // ---------------------------------------------------------------------------
-  // 1) Load explore feed on mount
+
   useEffect(() => {
+    console.log('entered the dispatch explore feed')
+    console.log('cookies available' , document.cookie )
+    
+    
     dispatch(getUserExploreFeed());
   }, [dispatch]);
 
-  // 2) After posts arrive, load all unique owners’ profiles
   useEffect(() => {
+    console.log(posts)
+    
     if (Array.isArray(posts) && posts.length) {
       const ownerIds = [...new Set(posts.map((p) => p.owner))];
+      console.log(ownerIds);
+      
       dispatch(getUserProfilesByIds(ownerIds));
     }
   }, [dispatch, posts]);
 
-  // ---------------------------------------------------------------------------
-  // Derived data for <FocusCards />
-  // ---------------------------------------------------------------------------
+
   const cards = Array.isArray(posts)
     ? posts.map((post, idx) => ({
-        key   : post._id ?? `${post.owner}-${idx}`,      // UNIQUE!
+        key   : post._id ?? `${post.owner}-${idx}`,      
         title : profilesById[post.owner]?.username
-                  ?? 'Loading...',                      // Fallback until profile loads
+                  ?? 'Loading...',                     
         src   : post.postContent,
-        // add any other props FocusCards expects here…
       }))
     : [];
 

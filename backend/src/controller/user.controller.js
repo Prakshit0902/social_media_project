@@ -551,6 +551,8 @@ const exploreSection = asyncHandler(async (req,res) => {
         }
     ])
     
+    // console.log(posts)
+    
     return res.status(200).json(
         new ApiResponse(200,posts,'explore section')
     )
