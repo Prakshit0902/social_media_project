@@ -46,11 +46,10 @@ function Home() {
                         postLikes = {card.postLikes}
                         postComments = {card.postComments}
                         feedPostshares = {card.feedPostshares}
-                        username = {card.username} />
+                        username = {card.username}
+                        postId = {card.postId} />
                 ))}
-                {/* <PostCard />
-                <PostCard />
-                <PostCard />     */}
+
             </div>
 
         </div>

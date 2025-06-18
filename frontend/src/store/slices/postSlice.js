@@ -1,11 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
 
 const initialState = {
-    likeLoading : false,
-
+    likesByPost: {},
+    isLikedByPost: {},
+    loading: false,
+    error: null,
 }
 
-export const likePost = createAsyncThunk(
+export const toggleLikePost = createAsyncThunk(
     'post/like',
     async(postId,{rejectWithValue}) => {
         try {
@@ -25,9 +28,23 @@ const postSlice = createSlice({
     reducers : {},
     extraReducers : (builder) => {
         builder
-        .addCase(likePost.pending , (state) => {
-            state.likeLoading = true
-        })
+            .addCase(toggleLikePost.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(toggleLikePost.fulfilled, (state, action) => {
+                state.loading = false;
+                const { updatedPost, isLiked } = action.payload;
+                const postId = updatedPost._id;
+                state.likesByPost[postId] = updatedPost.likes;
+                state.isLikedByPost[postId] = isLiked;
+                console.log(action.payload);
+                
+            })
+            .addCase(toggleLikePost.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
     }
 })
 

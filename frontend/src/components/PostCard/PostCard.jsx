@@ -4,33 +4,36 @@ import React, { useEffect, useState } from "react";
 
 import { CardBody, CardContainer, CardItem } from "../ui/3d-card";
 import { IconHeart, IconHeartFilled, IconMessageCircle, IconShare3 } from "@tabler/icons-react";
-import { useDispatch } from "react-redux";
-import { likePost } from "../../store/slices/postSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleLikePost } from "../../store/slices/postSlice";
 
 
-export function PostCard({userProfilePicture,postContent,postDescription,postLikes,postComments,postShares,username}) {
-    const dispatch = useDispatch()
+export function PostCard({userProfilePicture,postContent,postDescription,postLikes,postComments,postShares,username,postId}) {
 
-    useEffect(() => {
-      dispatch(likePost())
-      
-    },[])
-    const [likes,setLike] = useState(postLikes)
-    const [comments,setComment] = useState(postComments)
-    const [shares,setShares] = useState(postShares)
-    const [liked,setLiked] = useState(false)
+  const dispatch = useDispatch()
+  const {isLiked} = useSelector((state) => state.post)
+  const [likes,setLike] = useState(postLikes)
+  const [comments,setComment] = useState(postComments)
+  const [shares,setShares] = useState(postShares)
+  const [liked,setLiked] = useState(isLiked)
+  
+  useEffect(() => {
+    setLiked(isLiked)
+  },[isLiked])
 
-    const likeButtonClick = (e) => {
-        if (!liked){
-            setLike(likes + 1)
-            setLiked(!liked) 
-        }
-        else {
-            setLike(likes - 1)
-            setLiked(!liked) 
-        }
 
+  const handleLike = (e) => {
+    e.preventDefault()
+    if (!liked){
+      setLike(likes + 1)
+      setLiked(true)
     }
+    else {
+      setLike(likes - 1)
+      setLiked(!liked)
+    }
+    dispatch(toggleLikePost(postId))
+  }
 
 
   return (
@@ -58,14 +61,14 @@ export function PostCard({userProfilePicture,postContent,postDescription,postLik
             width="1000"
             className="h-60 w-full object-cover rounded-xl group-hover/card:shadow-xl"
             alt="thumbnail" 
-            onDoubleClick={likeButtonClick}/>
+            onDoubleClick={handleLike}/>
         </CardItem>
         
         <CardItem translateZ="100" >
 
             <div className="flex flex-row mt-10 text-neutral-500 dark:text-neutral-300" >
-                {liked? <IconHeartFilled className=" text-red-500" onClick={likeButtonClick}/>
-                :<IconHeart className=" text-neutral-500 dark:text-neutral-300" onClick={likeButtonClick}/>} 
+                {liked? <IconHeartFilled className=" text-red-500" onClick={handleLike}/>
+                :<IconHeart className=" text-neutral-500 dark:text-neutral-300" onClick={handleLike}/>} 
                 
                     <span className="ml-1 mr-1">{likes}</span>
 

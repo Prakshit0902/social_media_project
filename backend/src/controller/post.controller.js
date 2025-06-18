@@ -5,6 +5,9 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const toggleLike = asyncHandler(async (req,res) => {
+    console.log('entering the like post ');
+    console.log(req.body)
+    
     const {postId} = req.body
     if (!postId){
         return new ApiError(400,'No such post id found')
@@ -13,11 +16,13 @@ const toggleLike = asyncHandler(async (req,res) => {
     const post = await Post.findById(postId)
 
     if (!post){
+        console.log('cannot find such post');
+        
         return new ApiError(400,'No such post found')
     }
 
     const isLiked = post.likedBy.includes(req.user._id)
-
+    
     const updatedPost = await Post.findByIdAndUpdate(postId,
         isLiked ? {
             $pull : {
@@ -40,8 +45,9 @@ const toggleLike = asyncHandler(async (req,res) => {
         }
     )
 
+
     return res.status(200).json(
-        new ApiResponse(200,updatedPost, isLiked ? 'Liked post' : 'Unliked post')
+        new ApiResponse(200,{updatedPost,isLiked}, isLiked ? 'Liked post' : 'Unliked post')
     )
 
 })
