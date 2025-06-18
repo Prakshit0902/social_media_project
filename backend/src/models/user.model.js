@@ -82,6 +82,9 @@ const userSchema = Schema(
         isOnline : {
             type : Boolean,
             default : false
+        },
+        refreshToken : {
+            type : String,
         }
     },
     {

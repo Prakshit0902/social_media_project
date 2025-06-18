@@ -8,38 +8,41 @@ export function ExploreSection() {
   const dispatch = useDispatch();
 
   
-  const { posts }          = useSelector((state) => state.feed)
+  const { explorePosts,exploreLoading }          = useSelector((state) => state.feed)
   const { profilesById = {} } = useSelector((state) => state.user)
 
 
   useEffect(() => {
-    console.log('entered the dispatch explore feed')
-    console.log('cookies available' , document.cookie )
-    
-    
-    dispatch(getUserExploreFeed());
-  }, [dispatch]);
+    dispatch(getUserExploreFeed())
+  }, [dispatch])
+
 
   useEffect(() => {
-    console.log(posts)
     
-    if (Array.isArray(posts) && posts.length) {
-      const ownerIds = [...new Set(posts.map((p) => p.owner))];
+    if (Array.isArray(explorePosts) && explorePosts.length) {
+      const ownerIds = [...new Set(explorePosts.map((p) => p.owner))];
       console.log(ownerIds);
-      
       dispatch(getUserProfilesByIds(ownerIds));
     }
-  }, [dispatch, posts]);
+  }, [dispatch, explorePosts,exploreLoading]);
 
-
-  const cards = Array.isArray(posts)
-    ? posts.map((post, idx) => ({
+    const cards = Array.isArray(explorePosts)
+    ? explorePosts.map((post, idx) => ({
         key   : post._id ?? `${post.owner}-${idx}`,      
         title : profilesById[post.owner]?.username
-                  ?? 'Loading...',                     
+                  ?? 'exploreLoading...',                     
         src   : post.postContent,
+        likes : post.likes,
+        comments : post.comments,
+        shares : post.shares  
       }))
     : [];
 
-  return <FocusCards cards={cards} />;
+
+
+  return (
+    <div className="lg:ml-14 md:ml-20 p-4"> 
+      <FocusCards cards={cards} />
+    </div>
+  )
 }

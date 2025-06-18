@@ -2,8 +2,10 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const initialState = {
-    posts: [],
-    loading: false,
+    explorePosts: [],
+    feedPosts: [],
+    exploreLoading: false,
+    feedLoading : false,
     error: null,
 }
 
@@ -11,8 +13,8 @@ export const getUserPostFeed = createAsyncThunk(
     'user/get-post-feed',
     async (_,{rejectWithValue}) => {
         try {
-            const response = await axios.get('/api/v1/user/post-feed')
-            return response.data
+            const response = await axios.get('/api/v1/user/post-feed',{withCredentials : true})
+            return response.data.data
         } catch (error) {
             const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
             console.log(message)
@@ -43,17 +45,19 @@ const feedSlice = createSlice({
     extraReducers : (builder) => {
         builder
         .addCase(getUserPostFeed.pending , (state) => {
-            state.loading = true
+            state.feedLoading = true
             state.error = null
         })
 
         .addCase(getUserPostFeed.fulfilled, (state,action) => {
-            state.loading = false
+            state.feedLoading = false
             state.error = null
-            state.posts = action.payload.data
+            state.feedPosts = action.payload
+            console.log(state.feedPosts);
+            
         })
         .addCase(getUserPostFeed.rejected, (state, action) => {
-            state.loading = false
+            state.feedLoading = false
             state.error = action.payload
             console.log(action.payload);
             
@@ -61,7 +65,7 @@ const feedSlice = createSlice({
         .addCase(getUserExploreFeed.pending , (state) => {
             console.log('pending');
             
-            state.loading = true
+            state.exploreLoading = true
             state.error = null
             // console.log(action.payload);
 
@@ -69,15 +73,15 @@ const feedSlice = createSlice({
 
         .addCase(getUserExploreFeed.fulfilled, (state,action) => {
             console.log('fulfilled');
-            state.loading = false
+            state.exploreLoading = false
             state.error = null
-            state.posts = action.payload.data
+            state.explorePosts = action.payload
             console.log(action.payload);
             
         })
         .addCase(getUserExploreFeed.rejected, (state, action) => {
             console.log('rejected');
-            state.loading = false
+            state.exploreLoading = false
             state.error = action.payload
             console.error('Step 18: Rejected case triggered');
             console.error('Step 19: Error payload:', action.payload);

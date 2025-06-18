@@ -1,13 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { CardBody, CardContainer, CardItem } from "../ui/3d-card";
 import { IconHeart, IconHeartFilled, IconMessageCircle, IconShare3 } from "@tabler/icons-react";
+import { useDispatch } from "react-redux";
+import { likePost } from "../../store/slices/postSlice";
 
 
-export function PostCard({userProfilePicture,postContent,postDescription,postLikes,postComments,postShares}) {
-    const [likes,setLike] = useState(0)
+export function PostCard({userProfilePicture,postContent,postDescription,postLikes,postComments,postShares,username}) {
+    const dispatch = useDispatch()
+
+    useEffect(() => {
+      dispatch(likePost())
+      
+    },[])
+    const [likes,setLike] = useState(postLikes)
+    const [comments,setComment] = useState(postComments)
+    const [shares,setShares] = useState(postShares)
     const [liked,setLiked] = useState(false)
 
     const likeButtonClick = (e) => {
@@ -31,19 +41,19 @@ export function PostCard({userProfilePicture,postContent,postDescription,postLik
           translateZ="50"
           className="flex flex-row justify-center text-xl font-bold text-neutral-600 dark:text-white">
             <img
-                src="https://res-console.cloudinary.com/dikdl6cuv/thumbnails/v1/image/upload/v1749129526/dXNlci1kZWZhdWx0X3cxemV4NA==/drilldown"
+                src={userProfilePicture}
                 height="36"
                 width="36"
                 alt="thumbnail"
                 className="mr-4" />
             <p>
-                username_00
+                {username}
             </p>
 
         </CardItem>
         <CardItem translateZ="100" className="w-full mt-4">
           <img
-            src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src={postContent}
             height="1000"
             width="1000"
             className="h-60 w-full object-cover rounded-xl group-hover/card:shadow-xl"
@@ -60,15 +70,16 @@ export function PostCard({userProfilePicture,postContent,postDescription,postLik
                     <span className="ml-1 mr-1">{likes}</span>
 
                 <IconMessageCircle className=" text-neutral-500 dark:text-neutral-300"/>
-                    <span className="ml-1 mr-1">10</span>
+                    <span className="ml-1 mr-1"> {comments} </span>
                 <IconShare3 className=" text-neutral-500 dark:text-neutral-300"/>
+                    <span className="ml-1 mr-1"> {shares} </span>
             </div>
         </CardItem>
         <CardItem
           as="p"
           translateZ="60"
           className="text-neutral-500 text-sm max-w-sm mt-2 dark:text-neutral-300">
-          Hover over this card to unleash the power of CSS perspective
+          {postDescription}
         </CardItem>
       </CardBody>
     </CardContainer>

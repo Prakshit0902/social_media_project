@@ -13,7 +13,7 @@ export const refreshAccessToken = createAsyncThunk(
   "user/refresh-access-token",
   async (_,{rejectWithValue}) => {
     try {
-      const response = await axios.post('/api/v1/user/refresh-access-token')
+      const response = await axios.post('/api/v1/user/refresh-access-token',{withCredentials : true})
       return response.data
     } catch (error) {
       const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'

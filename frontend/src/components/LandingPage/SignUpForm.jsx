@@ -16,7 +16,7 @@ export function SignUpForm() {
   const dispatch = useDispatch()
   const {loading,user,error} = useSelector((state) => state.user)   
   const [nameData,setNameData] = useState({ firstname: '', lastname: '' })
-  const [formData,setFormData] = useState({email : '',password : '',username : 'ndead234',fullname : ''})
+  const [formData,setFormData] = useState({email : '',password : '',fullname : ''})
   const [confirmpassword,setConfirmPassword] = useState('')
 
   

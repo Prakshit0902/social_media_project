@@ -28,15 +28,13 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 const registerUser = asyncHandler(async (req,res) => {
     console.log('user registeration started')
     
-    const {username,email,password,fullname} = req.body
+    const {email,password,fullname} = req.body
 
-    if ([username,email,password].some((field) => field.trim() === '')){
+    if ([email,password,fullname].some((field) => field.trim() === '')){
         throw new ApiError(400,'All fields are required')
     }
 
-    const existedUser = await User.findOne({
-        $or : [{username},{email}]
-    })
+    const existedUser = await User.findOne({email})
 
     if (existedUser){
         throw new ApiError(409, "User with email or username already exists")
@@ -44,7 +42,7 @@ const registerUser = asyncHandler(async (req,res) => {
 
 
     const user = await User.create({
-        fullname,username,
+        fullname,
         email,
         password
     })
@@ -170,6 +168,8 @@ const logoutUser = asyncHandler(async (req,res) => {
 })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
+    console.log('hitting the refresh access token');
+    
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
     if (!incomingRefreshToken) {
@@ -181,14 +181,19 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             incomingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
         )
-    
+
         const user = await User.findById(decodedToken?._id)
-    
+       console.log(user);
+       
+        
         if (!user) {
+            
             throw new ApiError(401, "Invalid refresh token")
         }
-    
+        
+        console.log(user.refreshToken)
         if (incomingRefreshToken !== user?.refreshToken) {
+            
             throw new ApiError(401, "Refresh token is expired or used")
             
         }
@@ -559,10 +564,12 @@ const exploreSection = asyncHandler(async (req,res) => {
 })
 
 const postFeeds = asyncHandler(async (req,res) => {
+    console.log('getting the posts feed');
+    
     const posts = await Post.aggregate([
         {
             $sample : {
-                size : 5
+                size : 10
             }
         }
     ])
@@ -572,7 +579,6 @@ const postFeeds = asyncHandler(async (req,res) => {
     )
     
 })
-
 
 export {registerUser,
     registerBasicUserDetails,

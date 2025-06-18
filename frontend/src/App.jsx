@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
-import { fetchCurrentUser } from './store/slices/authSlice'; // update path accordingly
+import { fetchCurrentUser, refreshAccessToken } from './store/slices/authSlice'; // update path accordingly
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AuthLayout from './layouts/AuthLayout';
 import { DashBoardLayout } from './layouts/DashBoardLayout';
@@ -15,12 +15,15 @@ function App() {
 
   useEffect(() => {
     dispatch(fetchCurrentUser());
+    
+    if (!authChecked) {
+      dispatch(refreshAccessToken())
+    }
   }, []);
 
   if (!authChecked) {
     return <div className="w-full h-screen flex items-center justify-center">Checking auth...</div>;
   }
-
   return (
     <BrowserRouter>
       <Routes>
