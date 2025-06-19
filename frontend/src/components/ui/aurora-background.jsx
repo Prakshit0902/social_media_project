@@ -1,4 +1,4 @@
-"use client";
+"use client";;
 import { cn } from "../../lib/utils";
 import React from "react";
 
@@ -12,7 +12,7 @@ export const AuroraBackground = ({
     <main>
       <div
         className={cn(
-          "transition-bg relative flex h-[100vh] flex-col items-center justify-center bg-gray-50 text-slate-950 dark:bg-gray-950",
+          "transition-bg relative flex h-[100vh] flex-col items-center justify-center bg-zinc-50 text-slate-950 dark:bg-zinc-900",
           className
         )}
         {...props}>
@@ -20,56 +20,31 @@ export const AuroraBackground = ({
           className="absolute inset-0 overflow-hidden"
           style={
             {
-              // Subtle, modern gradient for social media
               "--aurora":
-                "linear-gradient(135deg, #667eea 0%, #764ba2 20%, #f093fb 40%, #4facfe 60%, #00d2ff 80%, #667eea 100%)",
+                "repeating-linear-gradient(100deg,#3b82f6_10%,#a5b4fc_15%,#93c5fd_20%,#ddd6fe_25%,#60a5fa_30%)",
 
-              // Softer dark gradient
               "--dark-gradient":
-                "linear-gradient(125deg, #0f0f0f 0%, #1a1a1a 25%, transparent 40%, transparent 60%, #1a1a1a 75%, #0f0f0f 100%)",
+                "repeating-linear-gradient(100deg,#000_0%,#000_7%,transparent_10%,transparent_12%,#000_16%)",
 
-              // Softer white gradient
               "--white-gradient":
-                "linear-gradient(125deg, #ffffff 0%, #f8fafc 25%, transparent 40%, transparent 60%, #f8fafc 75%, #ffffff 100%)",
+                "repeating-linear-gradient(100deg,#fff_0%,#fff_7%,transparent_10%,transparent_12%,#fff_16%)",
 
-              // Social media friendly color palette
-              "--purple-400": "#a78bfa",
-              "--purple-500": "#8b5cf6",
-              "--pink-400": "#f472b6",
+              "--blue-300": "#93c5fd",
               "--blue-400": "#60a5fa",
               "--blue-500": "#3b82f6",
-              "--teal-400": "#2dd4bf",
-              "--indigo-400": "#818cf8",
-              
-              // Base colors
-              "--black": "#0f0f0f",
-              "--white": "#ffffff",
+              "--indigo-300": "#a5b4fc",
+              "--violet-200": "#ddd6fe",
+              "--black": "#000",
+              "--white": "#fff",
               "--transparent": "transparent"
             }
           }>
           <div
+            //   I'm sorry but this is what peak developer performance looks like // trigger warning
             className={cn(
-              `after:animate-aurora pointer-events-none absolute -inset-[10px] opacity-30 blur-[60px] filter will-change-transform`,
-              
-              // Light mode - subtle pastel aurora
-              `[background-image:var(--white-gradient),var(--aurora)] [background-size:300%,_200%] [background-position:50%_50%,50%_50%]`,
-              
-              // Aurora gradient using CSS variables
-              `[--aurora:linear-gradient(135deg,var(--purple-400)_0%,var(--pink-400)_20%,var(--blue-400)_40%,var(--teal-400)_60%,var(--indigo-400)_80%,var(--purple-400)_100%)]`,
-              
-              // Gradient definitions
-              `[--dark-gradient:linear-gradient(125deg,var(--black)_0%,var(--black)_25%,var(--transparent)_40%,var(--transparent)_60%,var(--black)_75%,var(--black)_100%)]`,
-              `[--white-gradient:linear-gradient(125deg,var(--white)_0%,var(--white)_25%,var(--transparent)_40%,var(--transparent)_60%,var(--white)_75%,var(--white)_100%)]`,
-              
-              // After pseudo element
-              `after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] after:[background-size:200%,_100%] after:[background-attachment:fixed] after:mix-blend-soft-light after:content-[""]`,
-              
-              // Dark mode adjustments
-              `dark:[background-image:var(--dark-gradient),var(--aurora)] dark:opacity-20 dark:invert-0`,
-              `after:dark:[background-image:var(--dark-gradient),var(--aurora)]`,
-              
+              `after:animate-aurora pointer-events-none absolute -inset-[10px] [background-image:var(--white-gradient),var(--aurora)] [background-size:300%,_200%] [background-position:50%_50%,50%_50%] opacity-50 blur-[10px] invert filter will-change-transform [--aurora:repeating-linear-gradient(100deg,var(--blue-500)_10%,var(--indigo-300)_15%,var(--blue-300)_20%,var(--violet-200)_25%,var(--blue-400)_30%)] [--dark-gradient:repeating-linear-gradient(100deg,var(--black)_0%,var(--black)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--black)_16%)] [--white-gradient:repeating-linear-gradient(100deg,var(--white)_0%,var(--white)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--white)_16%)] after:absolute after:inset-0 after:[background-image:var(--white-gradient),var(--aurora)] after:[background-size:200%,_100%] after:[background-attachment:fixed] after:mix-blend-difference after:content-[""] dark:[background-image:var(--dark-gradient),var(--aurora)] dark:invert-0 after:dark:[background-image:var(--dark-gradient),var(--aurora)]`,
               showRadialGradient &&
-                `[mask-image:radial-gradient(ellipse_at_50%_0%,black_40%,transparent_100%)]`
+                `[mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,var(--transparent)_70%)]`
             )}></div>
         </div>
         {children}

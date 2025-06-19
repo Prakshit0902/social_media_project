@@ -10,23 +10,31 @@ const initialState = {
 
 export const toggleLikePost = createAsyncThunk(
     'post/like',
-    async(postId,{rejectWithValue}) => {
+    async(postId, { rejectWithValue }) => {
         try {
-            const response = await axios.post('/api/v1/post/like',{postId},{withCredentials : true})
-            return response.data.data
+            const response = await axios.post('/api/v1/post/like', { postId }, { withCredentials: true });
+            return response.data.data;
         } catch (error) {
-            const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
-            console.log(message)
-            return rejectWithValue(message)   
+            const message = error?.response?.data?.message || error?.message || 'Failed to toggle like';
+            console.error('Toggle like error:', error);
+            return rejectWithValue(message);
         }
     }
-)
+);
 
 const postSlice = createSlice({
-    name : 'post',
-    initialState : initialState,
-    reducers : {},
-    extraReducers : (builder) => {
+    name: 'post',
+    initialState: initialState,
+    reducers: {
+        initializeLikedStatus: (state, action) => {
+            const { posts, currentUserId } = action.payload;
+            posts.forEach(post => {
+                state.likesByPost[post._id] = post.likes;
+                state.isLikedByPost[post._id] = post.likedBy?.includes(currentUserId) || false;
+            });
+        }
+    },
+    extraReducers: (builder) => {
         builder
             .addCase(toggleLikePost.pending, (state) => {
                 state.loading = true;
@@ -37,15 +45,17 @@ const postSlice = createSlice({
                 const { updatedPost, isLiked } = action.payload;
                 const postId = updatedPost._id;
                 state.likesByPost[postId] = updatedPost.likes;
-                state.isLikedByPost[postId] = isLiked;
-                console.log(action.payload);
-                
+                // Note: isLiked from backend is the state BEFORE toggle
+                state.isLikedByPost[postId] = !isLiked;
+                console.log('Like toggled successfully:', action.payload);
             })
             .addCase(toggleLikePost.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+                console.error('Like toggle failed:', action.payload);
             })
     }
-})
+});
 
-export default postSlice.reducer
+export const { initializeLikedStatus } = postSlice.actions;
+export default postSlice.reducer;

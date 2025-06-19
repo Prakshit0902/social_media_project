@@ -1,5 +1,5 @@
+// NavBar.jsx
 import React from "react";
-
 import {
   IconBell,
   IconHome,
@@ -14,80 +14,67 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../../store/slices/authSlice";
 
-
 export function NavBar() {
-
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const links = [
     {
       title: "Home",
       icon: (
-        <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconHome className="h-full w-full" />
       ),
-      onClick : () => {
-        navigate('/dashboard')
+      onClick: () => {
+        navigate('/dashboard');
       }  
     },
-
     {
       title: "Explore",
       icon: (
-        <IconSearch className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconSearch className="h-full w-full" />
       ),
-      // href: "/dashboard/explore",
-      onClick : () => {
-        navigate('/dashboard/explore')
+      onClick: () => {
+        navigate('/dashboard/explore');
       }  
     },
     {
       title: "Chat",
       icon: (
-        <IconMessageCircle className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconMessageCircle className="h-full w-full" />
       ),
       href: "#",
     },
     {
       title: "Create",
       icon: (
-        <IconPlus className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconPlus className="h-full w-full" />
       ),
       href: "#",
     },
     {
       title: "Notifications",
       icon: (
-        <IconBell className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconBell className="h-full w-full" />
       ),
       href: "#",
     },
     {
       title: "Profile",
       icon: (
-        <IconUser className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconUser className="h-full w-full" />
       ),
       href: "#",
     },
     {
       title: "Logout",
       icon: (
-        <IconLogout className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <IconLogout className="h-full w-full" />
       ),
       onClick: () => {
-        dispatch(logoutUser())
+        dispatch(logoutUser());
       },
     },
   ];
-  return (
-    <>
 
-        <div className="flex justify-center w-full">  
-        <FloatingDock
-          desktopClassName="mx-auto w-fit"
-          mobileClassName="mx-0 w-fit"
-          items={links} />
-      </div>
-    </>
-  );
+  return <FloatingDock items={links} />;
 }

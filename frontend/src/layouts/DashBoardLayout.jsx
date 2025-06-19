@@ -36,9 +36,8 @@ function DashBoardLayout() {
       </div>}
 
       {/* Fixed navbar at bottom */}
-      <div className="fixed bottom-0 z-50">
+      
         <NavBar />
-      </div>
     </div>
   );
 }

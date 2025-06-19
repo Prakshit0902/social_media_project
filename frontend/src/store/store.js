@@ -12,7 +12,7 @@ const persistConfig = {
     storage, // Storage engine (localStorage by default)
     // Optionally, specify which reducers to persist if you don't want all state persisted
     // whitelist: ['post', 'auth'], // Only persist these reducers
-    // blacklist: ['feed'], // Exclude these reducers from persisting
+    blacklist: ['feed','user'], // Exclude these reducers from persisting
 };
 
 // Combine all reducers into a root reducer

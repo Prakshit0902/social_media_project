@@ -1,93 +1,108 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const initialState = {
     explorePosts: [],
     feedPosts: [],
     exploreLoading: false,
-    feedLoading : false,
+    feedLoading: false,
     error: null,
-}
+    explorePage: 1,
+    feedPage: 1,
+    hasMoreExplore: true,
+    hasMoreFeed: true,
+};
 
 export const getUserPostFeed = createAsyncThunk(
     'user/get-post-feed',
-    async (_,{rejectWithValue}) => {
+    async (page, { rejectWithValue }) => {
+        const host = window.location.hostname;
+        const backendPort = 3000; // Your backend port
+        const baseURL = host === 'localhost' 
+        ? `http://localhost:${backendPort}`
+        : `http://${host}:${backendPort}`
         try {
-            const response = await axios.get('/api/v1/user/post-feed',{withCredentials : true})
-            return response.data.data
+            const response = await axios.get(`${baseURL}/api/v1/user/post-feed?page=${page}&limit=10`, { withCredentials: true });
+            return { data: response.data.data, page };
         } catch (error) {
-            const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
-            console.log(message)
-            return rejectWithValue(message)  
+            const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server';
+            console.log(message);
+            return rejectWithValue(message);
         }
     }
-)
+);
+
 export const getUserExploreFeed = createAsyncThunk(
     'user/explore',
-    async (_,{rejectWithValue}) => {
+    async (page, { rejectWithValue }) => {
         try {
-            const response = await axios.get('/api/v1/user/explore', {withCredentials : true})
-
-            return response.data.data
+            const response = await axios.get(`/api/v1/user/explore?page=${page}&limit=20`, { withCredentials: true });
+            return { data: response.data.data, page };
         } catch (error) {
-            const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
-            console.log(message)
-            return rejectWithValue(message)  
+            const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server';
+            console.log(message);
+            return rejectWithValue(message);
         }
     }
-)
-
+);
 
 const feedSlice = createSlice({
-    name : 'feed',
-    initialState : initialState,
-    reducers : {},
-    extraReducers : (builder) => {
+    name: 'feed',
+    initialState: initialState,
+    reducers: {
+        resetExplorePage: (state) => {
+            state.explorePage = 1;
+            state.explorePosts = [];
+            state.hasMoreExplore = true;
+        },
+        resetFeedPage: (state) => {
+            state.feedPage = 1;
+            state.feedPosts = [];
+            state.hasMoreFeed = true;
+        }
+    },
+    extraReducers: (builder) => {
         builder
-        .addCase(getUserPostFeed.pending , (state) => {
-            state.feedLoading = true
-            state.error = null
-        })
-
-        .addCase(getUserPostFeed.fulfilled, (state,action) => {
-            state.feedLoading = false
-            state.error = null
-            state.feedPosts = action.payload
-            console.log(state.feedPosts);
-            
-        })
-        .addCase(getUserPostFeed.rejected, (state, action) => {
-            state.feedLoading = false
-            state.error = action.payload
-            console.log(action.payload);
-            
-        })
-        .addCase(getUserExploreFeed.pending , (state) => {
-            console.log('pending');
-            
-            state.exploreLoading = true
-            state.error = null
-            // console.log(action.payload);
-
-        })
-
-        .addCase(getUserExploreFeed.fulfilled, (state,action) => {
-            console.log('fulfilled');
-            state.exploreLoading = false
-            state.error = null
-            state.explorePosts = action.payload
-            console.log(action.payload);
-            
-        })
-        .addCase(getUserExploreFeed.rejected, (state, action) => {
-            console.log('rejected');
-            state.exploreLoading = false
-            state.error = action.payload
-            console.error('Step 18: Rejected case triggered');
-            console.error('Step 19: Error payload:', action.payload);
-            console.log(action.payload);
-        })
+            .addCase(getUserPostFeed.pending, (state) => {
+                state.feedLoading = true;
+                state.error = null;
+            })
+            .addCase(getUserPostFeed.fulfilled, (state, action) => {
+                state.feedLoading = false;
+                state.error = null;
+                if (action.payload.page === 1) {
+                    state.feedPosts = action.payload.data;
+                } else {
+                    state.feedPosts = [...state.feedPosts, ...action.payload.data];
+                }
+                state.feedPage = action.payload.page;
+                state.hasMoreFeed = action.payload.data.length === 10; // Assuming limit=10
+            })
+            .addCase(getUserPostFeed.rejected, (state, action) => {
+                state.feedLoading = false;
+                state.error = action.payload;
+            })
+            .addCase(getUserExploreFeed.pending, (state) => {
+                state.exploreLoading = true;
+                state.error = null;
+            })
+            .addCase(getUserExploreFeed.fulfilled, (state, action) => {
+                state.exploreLoading = false;
+                state.error = null;
+                if (action.payload.page === 1) {
+                    state.explorePosts = action.payload.data;
+                } else {
+                    state.explorePosts = [...state.explorePosts, ...action.payload.data];
+                }
+                state.explorePage = action.payload.page;
+                state.hasMoreExplore = action.payload.data.length === 20; // Assuming limit=20
+            })
+            .addCase(getUserExploreFeed.rejected, (state, action) => {
+                state.exploreLoading = false;
+                state.error = action.payload;
+            });
     }
-})
+});
 
-export default feedSlice.reducer
+export const { resetExplorePage, resetFeedPage } = feedSlice.actions;
+export default feedSlice.reducer;

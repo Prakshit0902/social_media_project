@@ -11,12 +11,12 @@ import { ExploreSection } from './components/ExploreSection/ExploreSection';
 
 function App() {
   const dispatch = useDispatch();
-  const { user, authChecked } = useSelector((state) => state.auth);
+  const { user, authChecked,isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchCurrentUser());
     
-    if (!authChecked) {
+    if (!isAuthenticated && authChecked) {
       dispatch(refreshAccessToken())
     }
   }, []);

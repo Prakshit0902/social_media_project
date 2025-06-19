@@ -47,7 +47,7 @@ const toggleLike = asyncHandler(async (req,res) => {
 
 
     return res.status(200).json(
-        new ApiResponse(200,{updatedPost,isLiked}, isLiked ? 'Liked post' : 'Unliked post')
+        new ApiResponse(200,{updatedPost,isLiked}, isLiked ? 'uniked post' : 'liked post')
     )
 
 })

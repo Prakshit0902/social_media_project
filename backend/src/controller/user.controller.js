@@ -169,6 +169,7 @@ const logoutUser = asyncHandler(async (req,res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     console.log('hitting the refresh access token');
+    console.log(req.cookies)
     
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
@@ -251,6 +252,7 @@ const changePassword = asyncHandler(async (req,res) => {
 
 const getCurrentUser = asyncHandler(async(req, res) => {
     console.log('getting current user ')
+    console.log(req.cookies)
     
     return res
     .status(200)
@@ -544,40 +546,33 @@ const approveFollowRequest = asyncHandler(async (req,res) => {
     
 })
 
+const exploreSection = asyncHandler(async (req, res) => {
+    const limit = parseInt(req.query.limit) || 20
 
-const exploreSection = asyncHandler(async (req,res) => {
-    console.log('this is explore section called ')
-    
+
     const posts = await Post.aggregate([
-        {
-            $sample : {
-                size : 20
-            }
-        }
+        { $sample: { size: limit } },
     ])
-    
-    // console.log(posts)
-    
-    return res.status(200).json(
-        new ApiResponse(200,posts,'explore section')
-    )
+
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+    return res.status(200).json(new ApiResponse(200, posts, 'explore section'))
 })
 
-const postFeeds = asyncHandler(async (req,res) => {
-    console.log('getting the posts feed');
-    
+const postFeeds = asyncHandler(async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const posts = await Post.aggregate([
-        {
-            $sample : {
-                size : 10
-            }
-        }
+        { $skip: skip },
+        { $limit: limit }
     ])
 
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+
     return res.status(200).json(
-        new ApiResponse(200,posts,'posts feed')
+        new ApiResponse(200, posts, 'posts feed')
     )
-    
 })
 
 export {registerUser,
