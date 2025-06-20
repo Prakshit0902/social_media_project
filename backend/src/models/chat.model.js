@@ -28,6 +28,10 @@ const chatSchema = Schema(
             type: Schema.Types.ObjectId,
             ref: 'Message'
         },
+        lastMessageAt: {  
+            type: Date,
+            default: Date.now
+        },
         unreadCounts: [{
             user: {
                 type: Schema.Types.ObjectId,

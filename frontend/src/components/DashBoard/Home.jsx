@@ -49,16 +49,18 @@ function Home() {
 
     const cardContent = Array.isArray(feedPosts)
         ? feedPosts.map((post, idx) => ({
+            
               postId: post._id,
-              postContent: post.postContent,
+              postContent: post.media.map(m => m.url),
               username: profilesById[post.owner]?.username ?? 'Loading...',
               profilePicture : profilesById[post.owner]?.profilePicture,
               postLikes: post.likes,
               feedPostshares: post.shares,
               postComments: post.comments,
-              postDescription: post.description,
+              postDescription: post.caption,
               isLiked: isLikedByPost[post._id] ?? post.likedBy?.includes(user?._id) ?? false, // Add this line
               key: post._id ? `feed-post-${post._id}` : `fallback-feed-${post.owner}-${idx}-${Date.now()}`,
+              postMentions: post.mentions || [], // Add mentions
           }))
         : []
 
@@ -71,12 +73,13 @@ function Home() {
                         postContent={card.postContent}
                         postDescription={card.postDescription}
                         postLikes={card.postLikes}
-                        postComments={card.postComments}
+                        postComments={card.postComments.length}
                         postShares={card.feedPostshares}
                         username={card.username}
                         postId={card.postId}
                         userProfilePicture={card.profilePicture}
                         isLiked={card.isLiked} // Add this line
+                        postMentions={card.postMentions}
                     />
                 ))}
             </div>

@@ -1,0 +1,18 @@
+{
+  "name": "social-media-seeders",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "seed": "node index.js",
+    "seed:users": "node -e \"import('./data/userSeeder.js').then(m => m.seedUsers())\"",
+    "seed:posts": "node -e \"import('./data/postSeeder.js').then(m => m.seedPosts())\"",
+    "clear": "node -e \"import('./data/clearDatabase.js').then(m => m.clearDatabase())\""
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.0.0",
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.0"
+  }
+}

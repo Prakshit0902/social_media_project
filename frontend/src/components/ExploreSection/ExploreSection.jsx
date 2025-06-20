@@ -34,9 +34,9 @@ export function ExploreSection() {
     ? explorePosts.map((post, idx) => ({
         key: post._id ?? `${post.owner}-${idx}`,
         title: profilesById[post.owner]?.username ?? 'Loading...',
-        src: post.postContent,
+        src: post.media[0]?.url,
         likes: post.likes,
-        comments: post.comments,
+        comments: post.comments.length,
         shares: post.shares,
       }))
     : []

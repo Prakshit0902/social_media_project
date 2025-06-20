@@ -16,7 +16,8 @@ const commentSchema = Schema(
         content: {
             type: String,
             required: true,
-            trim: true
+            trim: true,
+            maxLength : 1000
         },
         likes: {
             type: Number,
@@ -33,7 +34,8 @@ const commentSchema = Schema(
         }],
         parentComment: {  
             type: Schema.Types.ObjectId,
-            ref: 'Comment'
+            ref: 'Comment',
+            default : null
         },
         mentions: [{
             type: Schema.Types.ObjectId,
@@ -43,6 +45,7 @@ const commentSchema = Schema(
             type: Boolean,
             default: false
         },
+        editedAt: Date,
         isDeleted: {
             type: Boolean,
             default: false
@@ -55,6 +58,39 @@ const commentSchema = Schema(
 
 commentSchema.index({ post: 1, createdAt: -1 });
 commentSchema.index({ user: 1, createdAt: -1 });
+
+commentSchema.methods.toggleLike = async function(userId) {
+    const userIdStr = userId.toString();
+    const likeIndex = this.likedBy.findIndex(id => 
+        id.toString() === userIdStr
+    );
+    
+    if (likeIndex === -1) {
+        this.likedBy.push(userId);
+    } else {
+        this.likedBy.splice(likeIndex, 1);
+    }
+    
+    this.likes = this.likedBy.length;
+    return this.save();
+};
+
+// Soft delete (preserves comment structure)
+commentSchema.methods.softDelete = async function() {
+    this.isDeleted = true;
+    this.content = "[deleted]";  // Replace content but keep the comment
+    return this.save();
+};
+
+commentSchema.methods.addReply = async function(replyId) {
+    if (!this.replies.includes(replyId)) {
+        this.replies.push(replyId);
+        return this.save();
+    }
+    return this;
+};
+
+
 
 const Comment = mongoose.model('Comment', commentSchema)
 export {Comment}

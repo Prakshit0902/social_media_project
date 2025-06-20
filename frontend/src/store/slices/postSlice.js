@@ -32,6 +32,9 @@ const postSlice = createSlice({
                 state.likesByPost[post._id] = post.likes;
                 state.isLikedByPost[post._id] = post.likedBy?.includes(currentUserId) || false;
             });
+        },
+        resetPostState : (state) => {
+            return initialState
         }
     },
     extraReducers: (builder) => {
@@ -57,5 +60,5 @@ const postSlice = createSlice({
     }
 });
 
-export const { initializeLikedStatus } = postSlice.actions;
+export const { initializeLikedStatus,resetPostState } = postSlice.actions;
 export default postSlice.reducer;

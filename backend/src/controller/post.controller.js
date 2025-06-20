@@ -3,6 +3,7 @@ import { Post } from "../models/post.model.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { User } from "../models/user.model.js";
 
 const toggleLike = asyncHandler(async (req,res) => {
     console.log('entering the like post ');
@@ -10,7 +11,7 @@ const toggleLike = asyncHandler(async (req,res) => {
     
     const {postId} = req.body
     if (!postId){
-        return new ApiError(400,'No such post id found')
+        throw new ApiError(400,'No such post id found')
     }
 
     const post = await Post.findById(postId)
@@ -42,6 +43,20 @@ const toggleLike = asyncHandler(async (req,res) => {
         ,
         {
             new : true
+        }
+    )
+
+    await User.findByIdAndUpdate(req.user._id ,
+        !isLiked ? 
+        {
+            $push : {
+                likedPosts : updatedPost._id
+            } 
+        } : 
+        {
+            $pull : {
+                likedPosts : updatedPost._id
+            }
         }
     )
 

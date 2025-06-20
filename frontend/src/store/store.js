@@ -34,7 +34,7 @@ export const store = configureStore({
         getDefaultMiddleware({
             serializableCheck: {
                 // Ignore non-serializable values for redux-persist actions
-                ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+                ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE','persist/PURGE'],
             },
         }),
 });

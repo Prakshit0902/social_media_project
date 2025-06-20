@@ -28,7 +28,11 @@ export const getUserProfilesByIds = createAsyncThunk(
 const userSlice = createSlice({
     name : 'user',
     initialState : initialState,
-    reducers : {},
+    reducers : {
+        resetUserState : (state) => {
+            return initialState
+        }
+    },
 
     extraReducers : (builder) => {
         builder
@@ -48,5 +52,5 @@ const userSlice = createSlice({
         })
     }
 })
-
+export const {resetUserState} = userSlice.actions
 export default userSlice.reducer

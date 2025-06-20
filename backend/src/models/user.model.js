@@ -85,7 +85,15 @@ const userSchema = Schema(
         },
         refreshToken : {
             type : String,
-        }
+        },
+        likedPosts : [{
+            type : Schema.Types.ObjectId,
+            ref : 'Post'
+        }],
+        commentedPosts : [{
+            type : Schema.Types.ObjectId,
+            ref : 'Comment'
+        }]
     },
     {
         timestamps : true

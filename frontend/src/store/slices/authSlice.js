@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { resetExplorePage, resetFeedPage } from "./feedSlice";
+import { persistor } from "../store";
+
 
 const initialState = {
   user: null,
@@ -78,13 +82,13 @@ export const loginUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   'user/logout',
-  async (_,{rejectedWithValue}) => {
+  async (_,{rejectWithValue}) => {
     try {
         const response = await axios.post('/api/v1/user/logout', {} , {withCredentials : true})
         return response.data
     } catch (error) {
-        const message = error.response?.data?.message || error?.messsage || 'Unknown error occured during login' 
-        return rejectedWithValue(message)
+        const message = error.response?.data?.message || error?.message || 'Unknown error occured during login' 
+        return rejectWithValue(message)
     }
   }
 )
@@ -92,7 +96,11 @@ export const logoutUser = createAsyncThunk(
 const authSlice = createSlice({
   name : 'auth',
   initialState : initialState,
-  reducers : {},
+  reducers : {
+      resetAuthState: (state) => {
+      return initialState;
+    }
+  },
 
   extraReducers : (builder) => {
     builder
@@ -155,5 +163,6 @@ const authSlice = createSlice({
 }
 )
 
+export const { resetAuthState } = authSlice.actions
 
 export default authSlice.reducer;

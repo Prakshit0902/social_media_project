@@ -1,75 +1,113 @@
-import mongoose,{Schema} from "mongoose"
+import mongoose, { Schema } from 'mongoose';
 
 const postSchema = Schema(
     {
-        owner : {
-            type : Schema.Types.ObjectId,
-            ref : 'User',
-            required : true
+        owner: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true
         },
-        postType : {
-            type : String,
-            enum : ['image','video'],
-            required : true
-        },
-        postContent : {
-            type : String,
-            required : true
-        },
-        mentions : [{
-            type : Schema.Types.ObjectId,
-            ref : 'User'
+        
+        media: [{
+            url: {
+                type: String,
+                required: true
+            },
+            type: {
+                type: String,
+                enum: ['image', 'video'],
+                required: true
+            }
         }],
-        description : {
-            type : String,
-            trim : true,
-            required : true
-        },
-        hashTags : [{
-            type : String,
-            trim : true
-        }],
-        likes : {
-            type : Number,
-            min : 0,
-            default : 0
-        },
-        comments : {
-            type : Schema.Types.ObjectId,
-            ref : 'Comment'
-        },
-        shares : {
-            type : Number,
-            min : 0,
-            default : 0
-        },
-        likedBy : [{
-            type : Schema.Types.ObjectId,
-            ref : 'User'
-        }],
-        visibility: {
+        
+        caption: {
             type: String,
-            enum: ['public', 'private', 'followers'],
-            default: 'public'
+            trim: true,
+            maxLength: 2200
         },
-        isArchived : {
-            type : Boolean,
-            default : false
+        mentions: [{
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }],
+        hashtags: [{
+            type: String,
+            trim: true,
+            lowercase: true
+        }],
+
+        likes: {
+            type: Number,
+            min: 0,
+            default: 0
         },
-        saves : {
-            type : Number,
-            min : 0,
-            default : 0
-        }
+        likedBy: [{
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }],
+        comments: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Comment'
+        }],
+        
+        isArchived: {
+            type: Boolean,
+            default: false
+        },
+        savedBy: [{
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }]
     },
     {
-        timestamps : true
+        timestamps: true
     }
-)
+);
 
-postSchema.index({ owner: 1, createdAt: -1 })  // 1 - > ascending order and -1 -> for desceding order 
-postSchema.index({ hashTags: 1, createdAt: -1 })
 
-const Post = mongoose.model('Post',postSchema)
+postSchema.index({ owner: 1, createdAt: -1 });
+postSchema.index({ hashtags: 1 });
 
-export {Post}
+postSchema.methods.toggleLike = async function(userId) {
+    const userIdStr = userId.toString();
+    const likeIndex = this.likedBy.findIndex(id => 
+        id.toString() === userIdStr
+    );
+    
+    if (likeIndex === -1) {
+        this.likedBy.push(userId);
+    } else {
+        this.likedBy.splice(likeIndex, 1);
+    }
+    
+    this.likes = this.likedBy.length;
+    return this.save();
+};
+
+postSchema.methods.toggleSave = async function(userId) {
+    const userIdStr = userId.toString();
+    const saveIndex = this.savedBy.findIndex(id => 
+        id.toString() === userIdStr
+    );
+    
+    if (saveIndex === -1) {
+        this.savedBy.push(userId);
+    } else {
+        this.savedBy.splice(saveIndex, 1);
+    }
+    
+    return this.save();
+};
+
+// Extract hashtags from caption
+postSchema.pre('save', function(next) {
+    if (this.isModified('caption')) {
+        const hashtags = this.caption.match(/#[a-zA-Z0-9_]+/g) || [];
+        this.hashtags = [...new Set(hashtags.map(tag => tag.slice(1).toLowerCase()))];
+    }
+    next();
+});
+
+const Post = mongoose.model('Post', postSchema);
+
+export { Post };

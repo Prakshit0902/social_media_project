@@ -8,6 +8,7 @@ import { LoginForm } from './components/LandingPage/LoginForm';
 import { SignUpForm } from './components/LandingPage/SignUpForm';
 import { Home } from './components/DashBoard/Home';
 import { ExploreSection } from './components/ExploreSection/ExploreSection';
+import { UserProfileContainer } from './components/UserProfilePage/UserProfileContainer';
 
 function App() {
   const dispatch = useDispatch();
@@ -34,6 +35,7 @@ function App() {
         <Route path="dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} >
           <Route  index element = {<Home />} />
           <Route path='explore' element = {<ExploreSection/>} />
+          <Route path='profile' element = {<UserProfileContainer />}/>
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

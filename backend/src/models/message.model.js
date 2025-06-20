@@ -44,7 +44,27 @@ const messageSchema = Schema(
         replyTo: {
             type: Schema.Types.ObjectId,
             ref: 'Message'
-        }
+        },
+        mediaInfo: {
+            fileName: String,
+            fileSize: Number,
+            duration: Number, 
+            thumbnail: String 
+        },
+        deliveredTo: [{  
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            deliveredAt: {
+                type: Date,
+                default: Date.now
+            }
+        }],
+        deletedFor: [{  
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }]
     },
     {
         timestamps: true
