@@ -5,7 +5,8 @@ const initialState = {
     profilesById: {},
     selectedUserId: null,
     loading: false,
-    error: null
+    error: null,
+    profileById : null
 }
 
 export const getUserProfilesByIds = createAsyncThunk(
@@ -23,6 +24,23 @@ export const getUserProfilesByIds = createAsyncThunk(
         }
     }
     
+)
+
+export const getUserProfile = createAsyncThunk(
+    'user/fethProfile',
+    async (username , {rejectWithValue}) => {
+        try {
+            console.log('trying to get response');
+            const response = await axios.post(`/api/v1/user/profile/${username}`)
+            // console.log(response);
+            
+            return response.data.data
+        } catch (error) {
+            const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
+            console.log(message)
+            return rejectWithValue(message)   
+        }
+    }
 )
 
 const userSlice = createSlice({
@@ -49,6 +67,24 @@ const userSlice = createSlice({
         .addCase(getUserProfilesByIds.rejected , (state,action) => {
             state.loading = false
             state.error = action.payload
+        })
+
+        .addCase(getUserProfile.pending , (state) => {
+            state.loading = true
+            state.error = null
+            state.profileById = null
+        })
+        .addCase(getUserProfile.fulfilled , (state,action) => {
+            state.loading = false
+            state.error = null
+            state.profileById = action.payload
+            // console.log('action payload',action.payload);
+            
+        })
+        .addCase(getUserProfile.rejected , (state,action) => {
+            state.loading = false
+            state.error = action.payload
+            state.profileById = null
         })
     }
 })

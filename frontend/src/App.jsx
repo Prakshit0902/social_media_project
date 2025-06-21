@@ -35,7 +35,7 @@ function App() {
         <Route path="dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} >
           <Route  index element = {<Home />} />
           <Route path='explore' element = {<ExploreSection/>} />
-          <Route path='profile' element = {<UserProfileContainer />}/>
+          <Route path='profile/:username' element = {<UserProfileContainer />}/>
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

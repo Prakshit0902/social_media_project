@@ -366,22 +366,34 @@ const makeProfilePrivateOrPublic = asyncHandler(async (req,res) => {
 })
 
 const getUserProfile = asyncHandler(async (req,res) => {
-    const user = await User.findById(req.user._id)
+    const {username} = req.params
+    const user = await User.findOne({username : username})
     .select("-password -refreshToken")
     .lean()
 
+    if (!user) {
+        throw new ApiError(404,'User not found ')
+    }
+
+    // console.log(user);
+    
     const followerCount = user.followers.length
     const followingCount = user.following.length
-    const username = user.username
     const postCount = user.posts.length
+    const isOwner = false
+
+    if (user._id.toString() === req.user._id.toString()){
+        isOwner = true
+    }
 
     return res.status(200)
     .json(
         new ApiResponse(200,{
+            user,
             followerCount,
             followingCount,
             postCount,
-            username
+            isOwner
         },'user profile fetched successfully')
     )
 })
