@@ -9,6 +9,7 @@ import { SignUpForm } from './components/LandingPage/SignUpForm';
 import { Home } from './components/DashBoard/Home';
 import { ExploreSection } from './components/ExploreSection/ExploreSection';
 import { UserProfileContainer } from './components/UserProfilePage/UserProfileContainer';
+import { ProtectedRoute } from './components/UtilityComponent/ProtectedRoute';
 
 function App() {
   const dispatch = useDispatch();
@@ -32,10 +33,11 @@ function App() {
           <Route index element={<LoginForm />} />
           <Route path="register" element={<SignUpForm />} />
         </Route>
-        <Route path="dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} >
+        {/* <Route path="dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} > */}
+        <Route path="dashboard" element={<ProtectedRoute><DashBoardLayout /></ProtectedRoute>} >
           <Route  index element = {<Home />} />
           <Route path='explore' element = {<ExploreSection/>} />
-          <Route path='profile/:username' element = {<UserProfileContainer />}/>
+          <Route path='profile/:identifier' element = {<UserProfileContainer />}/>
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

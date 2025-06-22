@@ -11,16 +11,18 @@ import {
 } from "@tabler/icons-react";
 import { FloatingDock } from "../ui/floating-dock";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logoutUser, resetAuthState } from "../../store/slices/authSlice";
 import { resetExplorePage, resetFeedPage } from "../../store/slices/feedSlice";
 import { persistor } from "../../store/store";
-import { resetUserState } from "../../store/slices/userSlice";
+import { getUserProfile, resetUserState } from "../../store/slices/userSlice";
 import { resetPostState } from "../../store/slices/postSlice";
 
 export function NavBar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const {user} = useSelector((state) => state.auth)
 
   const handleLogOut = async () => {
     try {
@@ -37,6 +39,18 @@ export function NavBar() {
             console.error('Logout failed:', error)
           
         }
+  }
+
+  const handleProfile = () => {
+    if (!user){
+      console.log('no user found');
+    }
+
+    if (user?.data?._id){
+      console.log(user.data)
+      
+      navigate(`/dashboard/profile/${user.data._id}`)
+    }
   }
 
   const links = [
@@ -84,9 +98,7 @@ export function NavBar() {
       icon: (
         <IconUser className="h-full w-full" />
       ),
-      onClick : () => {
-        navigate('/dashboard/profile')
-      }
+      onClick : handleProfile
     },
     {
       title: "Logout",

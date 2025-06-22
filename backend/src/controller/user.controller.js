@@ -365,39 +365,58 @@ const makeProfilePrivateOrPublic = asyncHandler(async (req,res) => {
 
 })
 
-const getUserProfile = asyncHandler(async (req,res) => {
-    const {username} = req.params
-    const user = await User.findOne({username : username})
-    .select("-password -refreshToken")
-    .lean()
 
-    if (!user) {
-        throw new ApiError(404,'User not found ')
+const getUserProfile = asyncHandler(async (req, res) => {
+    const { identifier } = req.params;
+
+    // STEP 1: Build the query correctly
+    let query;
+    // Check if the identifier could be a valid ID
+    if (mongoose.Types.ObjectId.isValid(identifier)) {
+        query = {
+            $or: [
+                { _id: identifier },
+                // Always search for the lowercase version of the username
+                { username: identifier.toLowerCase() }
+            ]
+        };
+    } else {
+        // If it's not a valid ID format, it can only be a username
+        query = { username: identifier.toLowerCase() };
     }
 
-    // console.log(user);
+    // STEP 2: Find the user
+    const user = await User.findOne(query)
+        .select("-password -refreshToken")
+        .lean();
     
-    const followerCount = user.followers.length
-    const followingCount = user.following.length
-    const postCount = user.posts.length
-    const isOwner = false
-
-    if (user._id.toString() === req.user._id.toString()){
-        isOwner = true
+    // STEP 3: Handle user not found
+    if (!user) {
+        throw new ApiError(404, 'User not found with that identifier');
     }
 
-    return res.status(200)
-    .json(
-        new ApiResponse(200,{
-            user,
+    // STEP 4: Perform logic SAFELY to prevent crashes
+    const followerCount = user.followers ? user.followers.length : 0;
+    const followingCount = user.following ? user.following.length : 0;
+    const postCount = user.posts ? user.posts.length : 0;
+
+    let isOwner = false;
+    // Check for req.user's existence before comparing IDs
+    if (req.user && user._id.toString() === req.user._id.toString()) {
+        isOwner = true;
+    }
+
+    // STEP 5: Send the final, successful response
+    return res.status(200).json(
+        new ApiResponse(200, {
+            user, // Best practice to spread the user object
             followerCount,
             followingCount,
             postCount,
             isOwner
-        },'user profile fetched successfully')
-    )
-})
-
+        }, 'User profile fetched successfully')
+    );
+});
 const getUserProfilesById = asyncHandler(async (req,res) => {
     console.log('getting user profile by id ')
     

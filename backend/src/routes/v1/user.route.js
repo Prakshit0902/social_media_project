@@ -22,7 +22,7 @@ router.route('/refresh-access-token').post(refreshAccessToken)
 router.route('/update-account-details').post(verifyJWT,updateAccountDetails)
 router.route('/change-password').post(verifyJWT,changePassword)
 router.route('/update-profile-picture').post(verifyJWT,updateUserProfilePicture)
-router.route('/profile/:username').post(verifyJWT,getUserProfile)
+router.route('/profile/:identifier').get(verifyJWT,getUserProfile)
 router.route('/profiles').post(verifyJWT,getUserProfilesById)
 
 router.route('/update-bio').post(verifyJWT,updateBio)

@@ -27,11 +27,11 @@ export const getUserProfilesByIds = createAsyncThunk(
 )
 
 export const getUserProfile = createAsyncThunk(
-    'user/fethProfile',
-    async (username , {rejectWithValue}) => {
+    'user/fetchProfile',
+    async (identifier , {rejectWithValue}) => {
         try {
             console.log('trying to get response');
-            const response = await axios.post(`/api/v1/user/profile/${username}`)
+            const response = await axios.get(`/api/v1/user/profile/${identifier}`)
             // console.log(response);
             
             return response.data.data
@@ -73,18 +73,21 @@ const userSlice = createSlice({
             state.loading = true
             state.error = null
             state.profileById = null
+            console.log('rejected');
         })
         .addCase(getUserProfile.fulfilled , (state,action) => {
             state.loading = false
             state.error = null
             state.profileById = action.payload
-            // console.log('action payload',action.payload);
+            console.log('action payload',action.payload);
             
         })
         .addCase(getUserProfile.rejected , (state,action) => {
             state.loading = false
             state.error = action.payload
             state.profileById = null
+            console.log('rejected',action.payload);
+            
         })
     }
 })

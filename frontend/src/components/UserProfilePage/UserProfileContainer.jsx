@@ -34,14 +34,14 @@ const formatNumber = (num) => {
 
 const createDummyUser = () => ({
   _id: "65c2f3b9a7b5e4c3f8a9b0c7",
-  username: "aurora_stellaris",
+  identifier: "aurora_stellaris",
   email: "aurora@example.com", // Private, not shown in UI
   fullname: "Aurora Stellaris",
   profilePicture: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aurora",
   gender: 'female',
   dob: new Date("1995-08-15"),
-  followers: Array(12500).fill(null).map((_, i) => ({ _id: `f${i}`, username: `user_${i}`, fullname: `Follower Name ${i}`, avatar: `https://api.dicebear.com/7.x/pixel-art/svg?seed=f${i}` })),
-  following: Array(890).fill(null).map((_, i) => ({ _id: `fl${i}`, username: `creator_${i}`, fullname: `Following Name ${i}`, avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=fl${i}` })),
+  followers: Array(12500).fill(null).map((_, i) => ({ _id: `f${i}`, identifier: `user_${i}`, fullname: `Follower Name ${i}`, avatar: `https://api.dicebear.com/7.x/pixel-art/svg?seed=f${i}` })),
+  following: Array(890).fill(null).map((_, i) => ({ _id: `fl${i}`, identifier: `creator_${i}`, fullname: `Following Name ${i}`, avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=fl${i}` })),
   followRequests: Array(23).fill(null), // Only length matters for the badge
   posts: Array(18).fill(null).map((_, i) => ({ _id: `p${i}`, image: `https://source.unsplash.com/random/400x400/?abstract,art&sig=${i}`, likes: Math.floor(Math.random() * 5000), comments: Math.floor(Math.random() * 200) })),
   stories: Array(3).fill(null), // For potential future use
@@ -63,7 +63,7 @@ const createDummyUser = () => ({
 
 const UserProfileContainer = () => {
   // --- STATE MANAGEMENT ---
-  const {username} = useParams()
+  const {identifier} = useParams()
   const [activeTab, setActiveTab] = useState("posts");
   const [isFollowing, setIsFollowing] = useState(false); // Simulates if the VIEWER is following this user
   const [showFollowers, setShowFollowers] = useState(false);
@@ -75,21 +75,19 @@ const UserProfileContainer = () => {
   // const isOwnProfile = loggedInUser._id === userData?._id;
 
   useEffect(() => {
-    if (username){
-      dispatch(getUserProfile(username))
+    if (identifier){
+      dispatch(getUserProfile(identifier))
       console.log(profileById);
     }
-    else {
-      console.log('no username found');
-      
-    }
-
-  }, [dispatch,username])
 
 
-  console.log(profileById);
+  }, [dispatch,identifier])
+
+
   const userData = profileById?.user
   const isOwnProfile = profileById?.isOwner; // <-- TOGGLE to `true` to see your own private view
+  console.log(profileById);
+  console.log(isOwnProfile);
 
   const calculateAge = (dob) => dob ? Math.abs(new Date(Date.now() - new Date(dob).getTime()).getUTCFullYear() - 1970) : null;
   const age = calculateAge(userData?.dob);
@@ -114,11 +112,11 @@ const UserProfileContainer = () => {
     <>
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="backdrop-blur-2xl bg-black/30 rounded-3xl shadow-2xl border border-white/10 overflow-hidden">
-          {/* === HEADER: profilePicture, bannerImage, fullname, username, isVerified === */}
+          {/* === HEADER: profilePicture, bannerImage, fullname, identifier, isVerified === */}
           <div className="relative">
             <div className="h-40 md:h-56 lg:h-64"><img src={userData?.bannerImage} alt="Banner" className="w-full h-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" /></div>
             {isOwnProfile && (<div className="absolute top-4 right-4 flex gap-2"><motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-2.5 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-colors"><IconEdit size={20} /></motion.button><motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-2.5 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-colors"><IconSettings size={20} /></motion.button></div>)}
-            <div className="absolute -bottom-20 md:-bottom-16 left-4 md:left-8 w-[calc(100%-2rem)] md:w-auto"><div className="flex flex-col md:flex-row md:items-end gap-4"><motion.div initial={{ scale: 0, y: 50 }} animate={{ scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }} className="relative w-32 h-32 md:w-40 md:h-40 flex-shrink-0"><img src={userData?.profilePicture} alt={userData?.fullname} className="w-full h-full object-cover rounded-3xl border-4 border-black/40 shadow-lg" />{userData?.isVerified && (<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5 }} className="absolute -top-2 -right-2 bg-gradient-to-tr from-blue-500 to-cyan-400 p-2 rounded-full shadow-lg"><IconShieldCheck size={20} className="text-white" /></motion.div>)}</motion.div><div className="flex flex-col text-white pb-0 md:pb-2"><h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">{userData?.fullname} {userData?.isPrivate && <IconLock size={20} className="text-white/50" />}</h1><p className="text-base text-white/60">@{userData?.username}</p></div></div></div>
+            <div className="absolute -bottom-20 md:-bottom-16 left-4 md:left-8 w-[calc(100%-2rem)] md:w-auto"><div className="flex flex-col md:flex-row md:items-end gap-4"><motion.div initial={{ scale: 0, y: 50 }} animate={{ scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }} className="relative w-32 h-32 md:w-40 md:h-40 flex-shrink-0"><img src={userData?.profilePicture} alt={userData?.fullname} className="w-full h-full object-cover rounded-3xl border-4 border-black/40 shadow-lg" />{userData?.isVerified && (<motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5 }} className="absolute -top-2 -right-2 bg-gradient-to-tr from-blue-500 to-cyan-400 p-2 rounded-full shadow-lg"><IconShieldCheck size={20} className="text-white" /></motion.div>)}</motion.div><div className="flex flex-col text-white pb-0 md:pb-2"><h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">{userData?.fullname} {userData?.isPrivate && <IconLock size={20} className="text-white/50" />}</h1><p className="text-base text-white/60">@{userData?.identifier}</p></div></div></div>
           </div>
           
           {/* === BODY: bio, dob, gender, createdAt, stats, followRequests === */}
@@ -184,10 +182,10 @@ const UserProfileContainer = () => {
               <div className="p-2 space-y-2 overflow-y-auto">
                 {(showFollowers ? userData?.followers : userData?.following).slice(0, 20).map((user, index) => (
                   <motion.div key={user._id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.05 }} className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg transition-all cursor-pointer">
-                    <img src={user.avatar} alt={user.username} className="w-12 h-12 rounded-full bg-white/10 object-cover" />
+                    <img src={user.avatar} alt={user.identifier} className="w-12 h-12 rounded-full bg-white/10 object-cover" />
                     <div className="flex-1">
                       <div className="text-white font-semibold text-sm">{user.fullname}</div>
-                      <div className="text-white/60 text-xs">@{user.username}</div>
+                      <div className="text-white/60 text-xs">@{user.identifier}</div>
                     </div>
                     <button className="px-4 py-1.5 bg-white/10 rounded-full text-white text-xs font-medium hover:bg-white/20 transition-all">
                       {showFollowers ? (isOwnProfile ? "Remove" : "Follow") : "Following"}
