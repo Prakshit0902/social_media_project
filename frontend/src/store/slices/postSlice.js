@@ -29,12 +29,20 @@ const postSlice = createSlice({
         initializeLikedStatus: (state, action) => {
             const { posts, currentUserId } = action.payload;
             posts.forEach(post => {
-                state.likesByPost[post._id] = post.likes;
+                state.likesByPost[post._id] = post.likes || 0;
                 state.isLikedByPost[post._id] = post.likedBy?.includes(currentUserId) || false;
             });
         },
         resetPostState : (state) => {
             return initialState
+        },
+        setUserLikedPosts: (state, action) => {
+            const likedPostIds = action.payload;
+            state.userLikedPosts = likedPostIds;
+            // Set isLikedByPost for all liked posts
+            likedPostIds.forEach(postId => {
+                state.isLikedByPost[postId] = true;
+            });
         }
     },
     extraReducers: (builder) => {
@@ -60,5 +68,5 @@ const postSlice = createSlice({
     }
 });
 
-export const { initializeLikedStatus,resetPostState } = postSlice.actions;
+export const { initializeLikedStatus,resetPostState,setUserLikedPosts} = postSlice.actions;
 export default postSlice.reducer;

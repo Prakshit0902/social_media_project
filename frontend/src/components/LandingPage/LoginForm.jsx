@@ -7,7 +7,8 @@ import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { useState } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { useDispatch , useSelector} from "react-redux";
-import { loginUser } from "../../store/slices/authSlice";
+import { fetchCurrentUser, loginUser } from "../../store/slices/authSlice";
+import { setUserLikedPosts } from "../../store/slices/postSlice";
 
 
 export function LoginForm() {
@@ -18,9 +19,15 @@ export function LoginForm() {
 
   const [formData,setFormData] = useState({identifier : '' , password : ''})
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginUser(formData))
+    const result = await dispatch(loginUser(formData)).unwrap()
+    
+    if (result.user && result.user.likedPosts) {
+      dispatch(setUserLikedPosts(result.user.likedPosts));
+    }
+    await dispatch(fetchCurrentUser()).unwrap()
+    navigate('/dashboard',{replace : true})
   }
 
   const handleChange = (e) => {

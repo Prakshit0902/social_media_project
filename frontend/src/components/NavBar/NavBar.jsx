@@ -42,15 +42,18 @@ export function NavBar() {
   }
 
   const handleProfile = () => {
+    console.log('handling profile click');
+    console.log(user);
+    
     if (!user){
       console.log('no user found');
     }
 
     if (user?.data?._id){
       console.log(user.data)
-      
-      navigate(`/dashboard/profile/${user.data._id}`)
+      navigate(`/dashboard/profile/${user?.data?._id}`)
     }
+
   }
 
   const links = [

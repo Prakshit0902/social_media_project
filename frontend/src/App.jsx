@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { useEffect } from 'react';
-import { fetchCurrentUser, refreshAccessToken } from './store/slices/authSlice'; // update path accordingly
+import { useEffect, useRef } from 'react';
+import { fetchCurrentUser, refreshAccessToken } from './store/slices/authSlice';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AuthLayout from './layouts/AuthLayout';
 import { DashBoardLayout } from './layouts/DashBoardLayout';
@@ -13,37 +13,56 @@ import { ProtectedRoute } from './components/UtilityComponent/ProtectedRoute';
 
 function App() {
   const dispatch = useDispatch();
-  const { user, authChecked,isAuthenticated } = useSelector((state) => state.auth);
+  const { user, authChecked, isAuthenticated, loading } = useSelector((state) => state.auth);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    dispatch(fetchCurrentUser());
-    
-    if (!isAuthenticated && authChecked) {
-      dispatch(refreshAccessToken())
-    }
-  }, []);
+    // Prevent multiple initialization attempts
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
 
-  if (!authChecked) {
-    return <div className="w-full h-screen flex items-center justify-center">Checking auth...</div>;
+    const initAuth = async () => {
+      try {
+        // First try to get current user
+        const result = await dispatch(fetchCurrentUser()).unwrap();
+        // If fetchCurrentUser fails, result will be rejected
+      } catch (error) {
+        // Only try refresh token if fetchCurrentUser failed
+        try {
+          await dispatch(refreshAccessToken()).unwrap();
+        } catch (refreshError) {
+          // Both failed, user is not authenticated
+          console.log('User is not authenticated');
+        }
+      }
+    };
+
+    initAuth();
+  }, [dispatch]);
+
+  // Show loading while checking authentication
+  if (!authChecked || loading) {
+    return <div className="w-full h-screen flex items-center justify-center">Loading...</div>;
   }
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={user ? <Navigate to="dashboard" /> : <AuthLayout />}>
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthLayout />}>
           <Route index element={<LoginForm />} />
           <Route path="register" element={<SignUpForm />} />
         </Route>
-        {/* <Route path="dashboard" element={user ? <DashBoardLayout /> : <Navigate to="/" />} > */}
-        <Route path="dashboard" element={<ProtectedRoute><DashBoardLayout /></ProtectedRoute>} >
-          <Route  index element = {<Home />} />
-          <Route path='explore' element = {<ExploreSection/>} />
-          <Route path='profile/:identifier' element = {<UserProfileContainer />}/>
+        
+        <Route path="/dashboard" element={isAuthenticated ? <DashBoardLayout /> : <Navigate to="/" replace />}>
+          <Route index element={<Home />} />
+          <Route path="explore" element={<ExploreSection />} />
+          <Route path="profile/:identifier" element={<UserProfileContainer />} />
         </Route>
-        <Route path="*" element={<Navigate to="/" />} />
+        
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
-
-export default App
+export default App;   

@@ -65,7 +65,7 @@ export const signupUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   'user/login',
-  async (userData, {rejectedWithValue}) => {
+  async (userData, {rejectWithValue}) => {
     try {
       const response = await axios.post('api/v1/user/login',userData, {withCredentials : true}) 
       return {
@@ -75,7 +75,7 @@ export const loginUser = createAsyncThunk(
       }
     } catch (error) {
         const message = error.response?.data?.message || error?.messsage || 'Unknown error occured during login' 
-        return rejectedWithValue(message)     
+        return rejectWithValue(message)     
     }
   }
 )
@@ -98,7 +98,10 @@ const authSlice = createSlice({
   initialState : initialState,
   reducers : {
       resetAuthState: (state) => {
-      return initialState;
+      return {
+      ...initialState,
+      authChecked : true
+    };
     }
   },
 
@@ -109,11 +112,12 @@ const authSlice = createSlice({
       state.error = null
     })
 
-    .addCase(signupUser.fulfilled, (state,action) => {
-      console.log(action)
-      
-      state.loading = false
-      state.user = action.payload
+    .addCase(signupUser.fulfilled, (state, action) => {
+      console.log(action);
+      state.loading = false;
+      state.user = action.payload; // Adjust based on your API response
+      state.isAuthenticated = true; // Add this
+      state.authChecked = true; // Add this
     })
 
     .addCase(signupUser.rejected ,(state,action) => {
@@ -131,6 +135,8 @@ const authSlice = createSlice({
       // console.log(action.payload)
       
       state.user = action.payload
+      state.isAuthenticated = true; // Add this
+      state.authChecked = true; // Add this
     })
 
     .addCase(loginUser.rejected, (state,action) => {
@@ -142,7 +148,7 @@ const authSlice = createSlice({
       state.loading = true;
     })
     .addCase(fetchCurrentUser.fulfilled, (state, action) => {
-      // console.log(action.payload);
+      console.log(action.payload);
       state.user = action.payload;
       state.isAuthenticated = true;
       state.authChecked = true; 
@@ -158,7 +164,25 @@ const authSlice = createSlice({
     .addCase(logoutUser.fulfilled, (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      state.authChecked = true 
       // Clear any other user-related state
+    })
+
+    .addCase(refreshAccessToken.pending, (state) => {
+      state.loading = true;
+    })
+    .addCase(refreshAccessToken.fulfilled, (state, action) => {
+      // Assuming the refresh endpoint returns user data
+      state.user = action.payload;
+      state.isAuthenticated = true;
+      state.authChecked = true;
+      state.loading = false;
+    })
+    .addCase(refreshAccessToken.rejected, (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+      state.authChecked = true;
+      state.loading = false;
     })
   }
 }

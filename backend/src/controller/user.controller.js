@@ -25,40 +25,60 @@ const generateAccessAndRefereshTokens = async(userId) =>{
     }
 }
 
-const registerUser = asyncHandler(async (req,res) => {
-    console.log('user registeration started')
+const registerUser = asyncHandler(async (req, res) => {
+    console.log('user registration started');
     
-    const {email,password,fullname} = req.body
-
-    if ([email,password,fullname].some((field) => field.trim() === '')){
-        throw new ApiError(400,'All fields are required')
+    const { email, password, fullname } = req.body;
+    
+    if ([email, password, fullname].some((field) => !field?.trim())) {
+        throw new ApiError(400, 'All fields are required');
     }
 
-    const existedUser = await User.findOne({email})
-
-    if (existedUser){
-        throw new ApiError(409, "User with email or username already exists")
+    const normalizedEmail = email.toLowerCase().trim();
+    const existedUser = await User.findOne({ email: normalizedEmail });
+    
+    if (existedUser) {
+        throw new ApiError(409, "User with email already exists");
     }
-
 
     const user = await User.create({
-        fullname,
-        email,
+        fullname: fullname.trim(),
+        email: normalizedEmail,
         password
     })
 
-    const createdUser = await User.findById(user._id).select('-password -refreshToken')
 
-    if (!createdUser){
-        throw new ApiError(500,'Something went wrong while registering user')
-    }
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
 
-    console.log('user registered successfully')
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    const options = {
+        httpOnly: true,
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000 
+    };
+
+    const createdUser = await User.findById(user._id).select('-password -refreshToken');
+
+    console.log('user registered successfully');
     
-    return res.status(200).json(
-        new ApiResponse(200,createdUser,'User created successfully')
-    )
-
+    return res
+        .status(201)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, {
+            ...options,
+            maxAge: 7 * 24 * 60 * 60 * 1000 
+        })
+        .json(
+            new ApiResponse(201, {
+                user: createdUser,
+                accessToken,
+                refreshToken
+            }, 'User created successfully')
+        );
 })
 
 const registerBasicUserDetails = asyncHandler(async (req,res) => {

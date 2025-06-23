@@ -1,103 +1,123 @@
 "use client";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { cn } from "../../lib/utils";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
-import { useState } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { signupUser } from "../../store/slices/authSlice";
-
+import { fetchCurrentUser, signupUser } from "../../store/slices/authSlice";
+import { setUserLikedPosts } from "../../store/slices/postSlice";
 
 export function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const {loading,user,error} = useSelector((state) => state.user)   
-  const [nameData,setNameData] = useState({ firstname: '', lastname: '' })
-  const [formData,setFormData] = useState({email : '',password : '',fullname : ''})
-  const [confirmpassword,setConfirmPassword] = useState('')
-
-  
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, user, error } = useSelector((state) => state.auth); // Fixed: state.auth
+  const [nameData, setNameData] = useState({ firstname: '', lastname: '' });
+  const [formData, setFormData] = useState({ email: '', password: '', fullname: '' });
+  const [confirmpassword, setConfirmPassword] = useState('');
 
   const signInButtonClick = () => {
-      navigate('/')
-    }
-    
-    
-    // const handleChange = useCallback((e) => {
-    //     setFormData({...formData, [e.target.id ]: e.target.value})
-    // },[])
-    
-    // const handleNameChange = (e) => {
-    //     const { id, value } = e.target;
-    //     const updatedName = { ...nameData, [id]: value };
-    //     setNameData(updatedName);
-    //     setFormData({ ...formData, fullname: `${updatedName.firstname} ${updatedName.lastname}` });
-    // }
-
-    // const handleSubmit = (e) => {
-    //       e.preventDefault()
-    //       if (formData.password != confirmpassword){
-    //         alert('Passwords do not match')
-    //         return
-    //       }
-    //       dispatch(signupUser(formData))
-    //     }
-
+    navigate('/'); // Navigate to login page
+  };
 
   const handleChange = useCallback(
     (e) => {
-      setFormData({ ...formData, [e.target.id]: e.target.value });
+      setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
     },
-    [formData]
+    [] // Remove formData dependency to avoid recreation
   );
 
   const handleNameChange = (e) => {
     const { id, value } = e.target;
-    const updatedName = { ...nameData, [id]: value };
-    setNameData(updatedName);
-    setFormData({
-      ...formData,
-      fullname: `${updatedName.firstname} ${updatedName.lastname}`,
+    setNameData(prev => {
+      const updatedName = { ...prev, [id]: value };
+      setFormData(prevForm => ({
+        ...prevForm,
+        fullname: `${updatedName.firstname} ${updatedName.lastname}`.trim(),
+      }));
+      return updatedName;
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
     if (formData.password !== confirmpassword) {
       alert("Passwords do not match");
       return;
     }
-    dispatch(signupUser(formData));
-  }
+    
+    if (!formData.fullname.trim()) {
+      alert("Please enter your full name");
+      return;
+    }
+
+    try {
+      const result = await dispatch(signupUser(formData)).unwrap();
+    
+        // Initialize empty liked posts
+      dispatch(setUserLikedPosts([]));
+      // Navigate to dashboard after successful signup
+      await dispatch(fetchCurrentUser()).unwrap()
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      // Error is already in Redux state, you can show it in UI
+      console.error('Signup failed:', error);
+    }
+  };
+
   return (
-    <div
-      className="shadow-input w-full h-full rounded-none bg-white/10 backdrop-blur-sm p-4 md:rounded-2xl dark:bg-black/10 ">
+    <div className="shadow-input w-full h-full rounded-none bg-white/10 backdrop-blur-sm p-4 md:rounded-2xl dark:bg-black/10">
       <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">
         Sign Up Here
       </h2>
-      {/* <p className="mt-2 max-w-sm text-xl text-neutral-600 dark:text-neutral-300">
-        Login to MyProject if you can because we don&apos;t have a login flow
-        yet
-      </p> */}
+      
+      {/* Show error if exists */}
+      {error && (
+        <div className="mt-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
       <form className="my-8" onSubmit={handleSubmit}>
-        <div
-          className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+        <div className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
           <LabelInputContainer>
             <Label htmlFor="firstname">First name</Label>
-            <Input id="firstname" placeholder="Tyler" type="text" onChange = {handleNameChange}/>
+            <Input 
+              id="firstname" 
+              placeholder="Tyler" 
+              type="text" 
+              onChange={handleNameChange}
+              required
+            />
           </LabelInputContainer>
           <LabelInputContainer>
             <Label htmlFor="lastname">Last name</Label>
-            <Input id="lastname" placeholder="Durden" type="text" onChange = {handleNameChange} />
+            <Input 
+              id="lastname" 
+              placeholder="Durden" 
+              type="text" 
+              onChange={handleNameChange}
+              required
+            />
           </LabelInputContainer>
         </div>
+        
         <LabelInputContainer className="mb-4">
           <Label htmlFor="email">Email Address</Label>
-          <Input className = 'text-lg' id="email" placeholder="yourmail@email.com" type="email" onChange = {handleChange}/>
+          <Input 
+            className="text-lg" 
+            id="email" 
+            placeholder="yourmail@email.com" 
+            type="email" 
+            onChange={handleChange}
+            required
+          />
         </LabelInputContainer>
+        
         <LabelInputContainer className="mb-4">
           <Label htmlFor="password">Password</Label>
           <div className="relative">
@@ -105,7 +125,10 @@ export function SignUpForm() {
               id="password"
               placeholder="••••••••"
               type={showPassword ? "text" : "password"}
-              className="pr-10" onChange = {handleChange}
+              className="pr-10" 
+              onChange={handleChange}
+              required
+              minLength={6}
             />
             <button
               type="button"
@@ -116,29 +139,39 @@ export function SignUpForm() {
             </button>
           </div>
         </LabelInputContainer>
+        
         <LabelInputContainer className="mb-8">
           <Label htmlFor="confirmpassword">Confirm password</Label>
-          <Input id="confirmpassword" placeholder="••••••••" type="password" onChange={(e) => setConfirmPassword(e.target.value)}/>
+          <Input 
+            id="confirmpassword" 
+            placeholder="••••••••" 
+            type="password" 
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
         </LabelInputContainer>
 
         <button
-          className="mt-8  group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
-          type="submit" >
-          Sign Up &rarr;
+          className="mt-8 group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? 'Creating Account...' : 'Sign Up →'}
           <BottomGradient />
         </button>
 
-         <p className="mt-9 max-w-sm text-sm text-center text-neutral-600 dark:text-neutral-300">
-            Have an account! Sign In here 
+        <p className="mt-9 max-w-sm text-sm text-center text-neutral-600 dark:text-neutral-300">
+          Have an account? Sign In here
         </p>
+        
         <button
-            className="mt-4 group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
-            type="submit" onClick={signInButtonClick}>
-            Sign In &rarr;
-            <BottomGradient />
+          className="mt-4 group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+          type="button"  // Fixed: Changed from "submit" to "button"
+          onClick={signInButtonClick}
+        >
+          Sign In →
+          <BottomGradient />
         </button>
-
-
       </form>
     </div>
   );

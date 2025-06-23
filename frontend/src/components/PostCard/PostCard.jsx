@@ -14,6 +14,8 @@ import {
 } from "@tabler/icons-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleLikePost } from "../../store/slices/postSlice";
+import { getUserProfile } from "../../store/slices/userSlice";
+import { useNavigate } from "react-router-dom";
 
 export function PostCard({ 
     userProfilePicture, 
@@ -27,7 +29,8 @@ export function PostCard({
     isLiked,
     postMentions = [] 
 }) {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
     
     // Use local state for immediate UI updates
     const [likes, setLikes] = useState(postLikes);
@@ -125,6 +128,10 @@ export function PostCard({
         }
     }, [touchStart, touchEnd, minSwipeDistance, images.length, handleNextImage, handlePreviousImage]);
 
+    const usernameClicked = (e) => {
+        navigate(`/dashboard/profile/${username}`)
+    }
+
     return (
         <>
             <CardContainer className="inter-var w-full">
@@ -141,7 +148,7 @@ export function PostCard({
                             alt="profile"
                             className="mr-3 rounded-full object-cover ring-2 ring-gray-100"
                         />
-                        <p className="font-semibold text-base">{username}</p>
+                        <p className="font-semibold text-base cursor-pointer" onClick={usernameClicked}>{username}</p>
                     </CardItem>
                     
                     {/* Main Image Carousel */}
@@ -306,7 +313,7 @@ export function PostCard({
                             // translateZ="60"
                             className="text-neutral-700 text-sm mt-3 dark:text-neutral-300 leading-relaxed line-clamp-2 hover:line-clamp-none transition-all duration-200"
                         >
-                            <span className="font-semibold mr-2">{username}</span>
+                            <span className="font-semibold mr-2 cursor-pointer" onClick={usernameClicked}>{username}</span>
                             {postDescription}
                         </CardItem>
                     )}
@@ -327,7 +334,7 @@ export function PostCard({
                             </button>
                         </div>
                         <div className="space-y-3">
-                                                        {postMentions.map((mention, index) => (
+                            {postMentions.map((mention, index) => (
                                 <div key={index} className="flex items-center space-x-3">
                                     <img
                                         src={mention.profilePicture || '/default-avatar.png'}
