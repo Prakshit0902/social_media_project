@@ -9,7 +9,6 @@ import { SignUpForm } from './components/LandingPage/SignUpForm';
 import { Home } from './components/DashBoard/Home';
 import { ExploreSection } from './components/ExploreSection/ExploreSection';
 import { UserProfileContainer } from './components/UserProfilePage/UserProfileContainer';
-import { ProtectedRoute } from './components/UtilityComponent/ProtectedRoute';
 
 function App() {
   const dispatch = useDispatch();

@@ -389,54 +389,124 @@ const makeProfilePrivateOrPublic = asyncHandler(async (req,res) => {
 const getUserProfile = asyncHandler(async (req, res) => {
     const { identifier } = req.params;
 
-    // STEP 1: Build the query correctly
-    let query;
-    // Check if the identifier could be a valid ID
-    if (mongoose.Types.ObjectId.isValid(identifier)) {
-        query = {
-            $or: [
-                { _id: identifier },
-                // Always search for the lowercase version of the username
-                { username: identifier.toLowerCase() }
-            ]
-        };
-    } else {
-        // If it's not a valid ID format, it can only be a username
-        query = { username: identifier.toLowerCase() };
-    }
-
-    // STEP 2: Find the user
-    const user = await User.findOne(query)
-        .select("-password -refreshToken")
-        .lean();
+    // We need to convert the identifier to a valid ObjectId if possible for the $match stage
+    const matchCondition = mongoose.Types.ObjectId.isValid(identifier)
+        ? { $or: [{ _id: new mongoose.Types.ObjectId(identifier) }, { username: identifier.toLowerCase() }] }
+        : { username: identifier.toLowerCase() };
     
-    // STEP 3: Handle user not found
+    // Aggregation pipeline is an array of stages
+    const pipeline = [
+        // STEP 1: Find the correct user, equivalent to findOne()
+        {
+            $match: matchCondition
+        },
+        // STEP 2: Join with the 'posts' collection, equivalent to populate()
+        {
+            $lookup: {
+                from: "posts", // The actual name of the collection in MongoDB (usually plural and lowercase)
+                localField: "posts",
+                foreignField: "_id",
+                as: "posts", // The name for the array of populated posts
+                pipeline: [
+                    { 
+                        $project: 
+                            { 
+                                _id: 1,
+                                media: 1,
+                                likes: 1,
+                                commentsCount : {$size : {$ifNull : ["$comments",[]]}}
+                            }
+                     }]
+            }
+        },
+        {
+            $lookup : {
+                from : 'users',
+                localField : 'followers',
+                foreignField : '_id',
+                as: 'followers',
+                pipeline : [
+                    {
+                        $project : {
+                            _id : 1,
+                            username : 1,
+                            profilePicture : 1,
+                            fullname : 1
+                        }
+                    }
+                ]
+
+            }
+        },
+        {
+            $lookup : {
+                from : 'users',
+                localField : 'following',
+                foreignField : '_id',
+                as: 'following',
+                pipeline : [
+                    {
+                        $project : {
+                            _id : 1,
+                            username : 1,
+                            profilePicture : 1,
+                            fullname : 1
+                        }
+                    }
+                ]
+
+            }
+        },
+        // STEP 3: Add calculated fields to the document
+        {
+            $addFields: {
+                followerCount: { $size: { $ifNull: ["$followers", []] } }, // Safely get array size
+                followingCount: { $size: { $ifNull: ["$following", []] } },
+                postCount: { $size: { $ifNull: ["$posts", []] } },
+                
+                // Sort the populated posts within the aggregation
+                posts: {
+                    $sortArray: {
+                        input: "$posts",
+                        sortBy: { createdAt: -1 }
+                    }
+                }
+            }
+        },
+        // STEP 4: Shape the final output, equivalent to select()
+        {
+            $project: {
+                // Exclude sensitive fields
+                password: 0,
+                refreshToken: 0,
+                // You can also explicitly set which fields to keep:
+                // username: 1, email: 1, fullname: 1, etc.
+            }
+        }
+    ];
+
+    const results = await User.aggregate(pipeline);
+    
+    // Aggregation always returns an array, so we need to get the first element
+    const user = results[0];
+
     if (!user) {
         throw new ApiError(404, 'User not found with that identifier');
     }
 
-    // STEP 4: Perform logic SAFELY to prevent crashes
-    const followerCount = user.followers ? user.followers.length : 0;
-    const followingCount = user.following ? user.following.length : 0;
-    const postCount = user.posts ? user.posts.length : 0;
-
+    // The 'isOwner' check still needs to be done here in the application logic
+    // as it depends on the `req` object.
     let isOwner = false;
-    // Check for req.user's existence before comparing IDs
     if (req.user && user._id.toString() === req.user._id.toString()) {
         isOwner = true;
     }
 
-    // STEP 5: Send the final, successful response
+    // The posts are already populated and sorted by the pipeline!
     return res.status(200).json(
-        new ApiResponse(200, {
-            user, // Best practice to spread the user object
-            followerCount,
-            followingCount,
-            postCount,
-            isOwner
-        }, 'User profile fetched successfully')
+        new ApiResponse(200, { user, isOwner }, 'User profile fetched successfully')
     );
 });
+
 const getUserProfilesById = asyncHandler(async (req,res) => {
     console.log('getting user profile by id ')
     
@@ -610,7 +680,6 @@ const exploreSection = asyncHandler(async (req, res) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
     return res.status(200).json(new ApiResponse(200, posts, 'explore section'))
 })
-
 const postFeeds = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -618,15 +687,65 @@ const postFeeds = asyncHandler(async (req, res) => {
 
     const posts = await Post.aggregate([
         { $skip: skip },
-        { $limit: limit }
-    ])
+        { $limit: limit },
+        {
+        $lookup: {
+            from: 'users',
+            localField: 'owner',
+            foreignField: '_id',
+            as: 'owner',
+            pipeline: [
+            { $project: { _id: 1, username: 1,profilePicture : 1 } } // Include only _id and username
+            ]
+        }
+        },
+        {
+        $lookup: {
+            from: 'users',
+            localField: 'mentions',
+            foreignField: '_id',
+            as: 'mentions',
+            pipeline: [
+            { $project: { _id: 1, username: 1,profilePicture : 1 } } // Include only _id and username
+            ]
+        }
+        },
+        {
+        $lookup: {
+            from: 'users',
+            localField: 'likedBy',
+            foreignField: '_id',
+            as: 'likedByUsers',
+            pipeline: [
+            { $project: { _id: 1, username: 1,profilePicture : 1 } } // Include only _id and username
+            ]
+        }
+        },
+        {
+        $project: {
+            _id: 1,
+            owner: { $arrayElemAt: ['$owner', 0] }, // Get the first owner (assuming one owner)
+            media: 1,
+            caption: 1,
+            mentions: 1, // Keep the entire mentions array
+            hashtags: 1,
+            likes: 1,
+            likedByUsers: 1, // Keep the entire likedByUsers array
+            comments: 1,
+            isArchived: 1,
+            savedBy: 1,
+            createdAt: 1,
+            updatedAt: 1
+        }
+        }
+    ]);
 
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
     return res.status(200).json(
         new ApiResponse(200, posts, 'posts feed')
-    )
-})
+    );
+});
 
 export {registerUser,
     registerBasicUserDetails,

@@ -34,12 +34,14 @@ function Home() {
     }, [dispatch, isAuthenticated]);
 
     // Fetch user profiles when posts are loaded
-    useEffect(() => {
-        if (Array.isArray(feedPosts) && feedPosts.length > 0) {
-            const ownerIds = [...new Set(feedPosts.map((p) => p.owner))];
-            dispatch(getUserProfilesByIds(ownerIds));
-        }
-    }, [dispatch, feedPosts]);
+    // useEffect(() => {
+    //     console.log(feedPosts)
+        
+    //     if (Array.isArray(feedPosts) && feedPosts.length > 0) {
+    //         const ownerIds = [...new Set(feedPosts.map((p) => p.owner))];
+    //         dispatch(getUserProfilesByIds(ownerIds));
+    //     }
+    // }, [dispatch, feedPosts]);
 
     // Initialize liked status when posts are loaded
     useEffect(() => {
@@ -48,7 +50,11 @@ function Home() {
                 posts: feedPosts, 
                 currentUserId: user._id 
             }));
+            
         }
+
+        console.log(feedPosts);
+        
     }, [dispatch, feedPosts, user?._id]);
 
     // Check authentication first
@@ -91,9 +97,10 @@ function Home() {
     const cardContent = Array.isArray(feedPosts)
         ? feedPosts.map((post, idx) => ({
               postId: post._id,
-              postContent: post.media.map(m => m.url),
-              username: profilesById[post.owner]?.username ?? 'Loading...',
-              profilePicture: profilesById[post.owner]?.profilePicture,
+              postContent: post.media?.map(m => m.url),
+              postContentType : post.media.map(m => m.type),
+              username: post.owner.username,
+              profilePicture: post.owner.profilePicture,
               postLikes: post.likes,
               feedPostshares: post.shares,
               postComments: post.comments,
@@ -101,6 +108,7 @@ function Home() {
               isLiked: isLikedByPost[post._id] ?? post.likedBy?.includes(user?._id) ?? false,
               key: post._id ? `feed-post-${post._id}` : `fallback-feed-${post.owner}-${idx}-${Date.now()}`,
               postMentions: post.mentions || [],
+              likedByUsers : post.likedByUsers || []
           }))
         : [];
 
@@ -112,6 +120,7 @@ function Home() {
                         <PostCard
                             key={card.key}
                             postContent={card.postContent}
+                            postContentType = {card.postContentType}
                             postDescription={card.postDescription}
                             postLikes={card.postLikes}
                             postComments={card.postComments.length}
@@ -121,6 +130,7 @@ function Home() {
                             userProfilePicture={card.profilePicture}
                             isLiked={card.isLiked}
                             postMentions={card.postMentions}
+                            likedByUsers={card.likedByUsers}
                         />
                     ))
                 ) : (

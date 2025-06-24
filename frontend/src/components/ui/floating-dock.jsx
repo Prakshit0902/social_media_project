@@ -22,7 +22,7 @@ const FloatingDockMobile = ({
 }) => {
   return (
     <div className={cn(
-      "fixed bottom-0 left-0 right-0 mx-auto flex h-16 items-center justify-around bg-white/80 backdrop-blur-md px-4 md:hidden dark:bg-neutral-900/80 border-t border-gray-200 dark:border-neutral-800",
+      "z-15 fixed bottom-0 left-0 right-0 mx-auto flex h-16 items-center justify-around bg-white/80 backdrop-blur-md px-4 md:hidden dark:bg-neutral-900/80 border-t border-gray-200 dark:border-neutral-800",
       className
     )}>
       {items.map((item) => (
@@ -74,7 +74,7 @@ const FloatingDockDesktop = ({
       animate={{ width: isExpanded ? 240 : 80 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className={cn(
-        "hidden md:flex fixed left-0 top-0 h-screen flex-col bg-white/80 backdrop-blur-md border-r border-gray-200 dark:bg-neutral-900/80 dark:border-neutral-800",
+        "z-15 hidden md:flex fixed left-0 top-0 h-screen flex-col bg-white/80 backdrop-blur-md border-r border-gray-200 dark:bg-neutral-900/80 dark:border-neutral-800",
         className
       )}
     >
