@@ -1,5 +1,5 @@
 // UserProfileContainer.jsx - Aligned with your Mongoose User Schema
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   IconGridDots,
@@ -20,7 +20,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { getUserProfile } from '../../store/slices/userSlice'
 import { useNavigate, useParams } from 'react-router-dom'
-import { followUser } from '../../store/slices/followSlice'
+import { followUser, unFollowUser } from '../../store/slices/followSlice'
 
 // Helper for formatting large numbers
 const formatNumber = (num) => {
@@ -87,17 +87,20 @@ const UserProfileContainer = () => {
   // --- STATE MANAGEMENT ---
   const { identifier } = useParams()
   const [activeTab, setActiveTab] = useState('posts')
-  const [isFollowing, setIsFollowing] = useState(false) // Simulates if the VIEWER is following this user
+  // const [isFollowing, setIsFollowing] = useState(false) // Simulates if the VIEWER is following this user
   const [showFollowers, setShowFollowers] = useState(false)
   const [showFollowing, setShowFollowing] = useState(false)
   const dispatch = useDispatch()
   const { loading, error, profileById } = useSelector((state) => state.user)
   const {user} = useSelector((state) => state.auth)
+  const [ isProcessingFollow, setIsProcessingFollow] = useState(false);
   // This is the most important flag. In a real app, you would set this by comparing IDs:
   // const { user: loggedInUser } = useAuth();
   // const isOwnProfile = loggedInUser._id === userData?._id
 
   const navigate = useNavigate()
+
+  
   
   const navigateToProfile = (username) => {
     navigate(`/dashboard/profile/${username}`);
@@ -111,18 +114,18 @@ const UserProfileContainer = () => {
       console.log(profileById)
     }
   }, [dispatch, identifier])
-
+  
   const userData = profileById?.user
   const isOwnProfile = profileById?.isOwner // <-- TOGGLE to `true` to see your own private view
   console.log(profileById)
   console.log(isOwnProfile)
-
+  
   const calculateAge = (dob) =>
     dob
-      ? Math.abs(
-          new Date(Date.now() - new Date(dob).getTime()).getUTCFullYear() - 1970
-        )
-      : null
+  ? Math.abs(
+    new Date(Date.now() - new Date(dob).getTime()).getUTCFullYear() - 1970
+  )
+  : null
   const age = calculateAge(userData?.dob)
 
   // --- DYNAMIC TABS BASED ON OWNERSHIP ---
@@ -157,22 +160,41 @@ const UserProfileContainer = () => {
     ],
   }
   const tabs = isOwnProfile ? TABS_CONFIG.ownProfile : TABS_CONFIG.publicProfile
-
+  
   // Determine if the content should be visible
+  const isFollowing = useMemo(() => {
+    if (!user?.following || !userData?._id) return false;
+    
+    // Check if the first element is a string (ObjectID) or an object.
+    const isIdArray = typeof user.following[0] === 'string';
+
+    if (isIdArray) {
+      return user.following.includes(userData._id);
+    }
+    // If it's an array of objects, check the _id property.
+    return user.following.some((followedUser) => followedUser._id === userData._id);
+  }, [user?.following, userData?._id])
+
+
   const canViewContent = !userData?.isPrivate || isOwnProfile || isFollowing
+  
+  
+  const handleFollow = async () => {
+    if (isProcessingFollow || !userData?._id) return; // Prevent multiple clicks
 
-  useEffect(() => {  
-    const is = user?.following?.some(follow => follow._id === userData?._id) ?? false
-    console.log(is);
-    
-    setIsFollowing(is)
-  })
-
-  const handleFollow = (e) => {
-    console.log('follow button click');
-    
-    setIsFollowing(!isFollowing)
-    dispatch(followUser(userData?._id))
+    setIsProcessingFollow(true);
+    try {
+      if (isFollowing) {
+        await dispatch(unFollowUser(userData._id)).unwrap();
+      } else {
+        await dispatch(followUser(userData._id)).unwrap();
+      }
+    } catch (err) {
+      console.error('Failed to perform follow/unfollow action:', err);
+      // Optional: show a user-facing error message
+    } finally {
+      setIsProcessingFollow(false);
+    }
   }
 
   return (
@@ -317,17 +339,22 @@ const UserProfileContainer = () => {
                 </div>
                 {!isOwnProfile ? (
                   <div className="flex gap-2 w-full">
-                    <motion.button
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {handleFollow()}}
-                      className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                        isFollowing
-                          ? 'bg-white/10 text-white'
-                          : 'bg-gradient-to-r from-blue-500 to-cyan-400 text-black'
-                      }`}
-                    >
-                      {isFollowing ? 'Following' : 'Follow'}
-                    </motion.button>
+                      <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          onClick={handleFollow}
+                          // This is the most important part: disable the button based on our local state.
+                          disabled={isProcessingFollow}
+                          className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                            isFollowing
+                              ? 'bg-white/10 text-white'
+                              : 'bg-gradient-to-r from-blue-500 to-cyan-400 text-black'
+                          } ${
+                            // Add a visual style to show the button is disabled.
+                            isProcessingFollow ? 'opacity-60 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          {isProcessingFollow ? 'Processing...' : isFollowing ? 'Following' : 'Follow'}
+                      </motion.button>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       className="w-full py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white"

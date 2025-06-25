@@ -3,7 +3,7 @@ import axios from "axios";
 
 const initialState = {
     loading : false,
-    error : null
+    error : null,
 }
 
 export const userFollowers = (state) => state.user?.followers
@@ -14,6 +14,19 @@ export const followUser = createAsyncThunk(
     async(id , {rejectWithValue}) => {
         try {
             const response = await axios.post('/api/v1/user/follow-user',{followUserId : id},{withCredentials : true})
+            return response.data
+        } catch (error) {
+            const message = error?.response?.data?.message || error?.message || 'Failed to toggle like';
+            console.error('following an user failed with:', error);
+            return rejectWithValue(message) 
+        }
+    }
+)
+export const unFollowUser = createAsyncThunk(
+    'user/unfollow',
+    async(id , {rejectWithValue}) => {
+        try {
+            const response = await axios.post('/api/v1/user/unfollow-user',{unFollowUserId : id},{withCredentials : true})
             return response.data
         } catch (error) {
             const message = error?.response?.data?.message || error?.message || 'Failed to toggle like';
@@ -39,6 +52,19 @@ const followSlice = createSlice({
             console.log(action.payload)
         })
         .addCase(followUser.rejected, (state,action) => {
+            state.loading = false
+            state.error = action.payload
+        })
+        .addCase(unFollowUser.pending , (state) => {
+            state.loading = true
+            state.error = null
+        })
+        .addCase(unFollowUser.fulfilled , (state,action) => {
+            state.loading = false
+            state.error = null
+            console.log(action.payload)
+        })
+        .addCase(unFollowUser.rejected, (state,action) => {
             state.loading = false
             state.error = action.payload
         })

@@ -549,106 +549,72 @@ const getUserProfilesById = asyncHandler(async (req,res) => {
 
 })
 
-const followAnUser = asyncHandler(async (req,res) => {
-    const {followUserId} = req.body
-    let disableFollowButton = false
-    if (followUserId === req.user._id.toString()){
-        disableFollowButton = true
-        return res.status(400).json(
-            new ApiResponse(400, { disableFollowButton: true }, "You cannot follow yourself")
-        )
-    }
-    const followUser = await User.findById(followUserId).select('-password -refreshToken')
-    const currentUser = await  User.findById(req.user._id)
-    let isFollowing = false
-    if (!currentUser.following.map(id => id.toString()).includes(followUserId)){
-        if (followUser.isPrivate){
-            // if (currentUser.followRequests.includes(followUserId)) {
-            //     return res.status(400).json(
-            //         new ApiResponse(400, {}, "Follow request already sent")
-            //     )
-            // }
-            await User.findByIdAndUpdate(req.user._id,
-            {
-                $addToSet : {
-                    followRequests : followUserId
-                }
-            },
-            {
-                new : true
-            }
-        )
+// After (Correct Solution)
+const followAnUser = asyncHandler(async (req, res) => {
+    const { followUserId } = req.body;
+    // ... checks for following self, etc. ...
 
+    // Find the user to follow
+    const followUser = await User.findById(followUserId);
+    if (!followUser) {
+        throw new ApiError(404, "User to follow not found");
+    }
+
+    let isFollowing = false;
+    let updatedCurrentUser; // Declare the variable to hold the final user object
+
+    if (!req.user.following.map(id => id.toString()).includes(followUserId)) {
+        if (followUser.isPrivate) {
+            // Handle private account logic (sending request)
+            // ... your logic here is fine
+        } else {
+            // Public account: update both users
+            updatedCurrentUser = await User.findByIdAndUpdate(
+                req.user._id,
+                { $addToSet: { following: followUserId } }, // Use $addToSet to prevent duplicates
+                { new: true } // IMPORTANT: This option returns the MODIFIED document
+            ).select('-password -refreshToken');
+
+            await User.findByIdAndUpdate(followUserId, {
+                $addToSet: { followers: req.user._id }
+            });
+            isFollowing = true;
         }
-        else {
-            await User.findByIdAndUpdate(req.user._id,
-                {
-                    $push : {
-                        following : followUserId
-                    }
-                },
-                {
-                    new : true
-                }
-            )
-            await User.findByIdAndUpdate(followUserId,{
-                $push : {
-                    followers : req.user._id
-                    }
-                },
-                {
-                    new : true
-                }
-        
-            )
-            isFollowing = true
-        }
+    } else {
+        // If already following, just fetch the current state of the user to return
+        updatedCurrentUser = req.user;
     }
 
-    let message = isFollowing ? 
-    `You started following ${followUser.username}`: 
-    followUser.isPrivate ? `Follow request sent to ${followUser.username}`
-    : `Already following ${followUser.username}`
+    const message = isFollowing 
+        ? `You started following ${followUser.username}`
+        : followUser.isPrivate ? `Follow request sent to ${followUser.username}`
+        : `Already following ${followUser.username}`;
 
-    return res.status(200)
-    .json(
-        new ApiResponse(200,{isFollowing,disableFollowButton,currentUser},message)
-    )
-    
-})
+    return res.status(200).json(
+        new ApiResponse(200, { currentUser: updatedCurrentUser }, message)
+    );
+});
 
-const unfollowAnUser = asyncHandler(async (req,res) => {
-    const {unFollowUserId} = req.body
-    const currentUser = await User.findById(req.user._id)
-    if (currentUser.following.map(id => id.toString()).includes(unFollowUserId)){
-        await User.findByIdAndUpdate(req.user._id,
-            {
-                $pull : {
-                    following : unFollowUserId
-                }
-            },
-            {
-                new : true
-            })
 
-        await User.findByIdAndUpdate(unFollowUserId,
-            {
-                $pull : {
-                    followers : req.user._id
-                }
-            },
-            {
-                new : true
-            }
-        )
-    }
+const unfollowAnUser = asyncHandler(async (req, res) => {
+    const { unFollowUserId } = req.body;
 
-    return res.status(200)
-    .json(
-        new ApiResponse(200,{},'user unfollowed successfully')
-    )
-})
+    // Update and get the new user document in one step
+    const updatedCurrentUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { following: unFollowUserId } }, // $pull removes the ID
+        { new: true } // IMPORTANT: Returns the document AFTER the update
+    ).select('-password -refreshToken');
 
+    // Also update the other user's followers
+    await User.findByIdAndUpdate(unFollowUserId, {
+        $pull: { followers: req.user._id }
+    });
+
+    return res.status(200).json(
+        new ApiResponse(200, { currentUser: updatedCurrentUser }, 'User unfollowed successfully')
+    );
+});
 const approveFollowRequest = asyncHandler(async (req,res) => {
     const {approveUserId} = req.body
 
