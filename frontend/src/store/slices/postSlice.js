@@ -30,7 +30,7 @@ const postSlice = createSlice({
             const { posts, currentUserId } = action.payload;
             posts.forEach(post => {
                 state.likesByPost[post._id] = post.likes || 0;
-                state.isLikedByPost[post._id] = post.likedBy?.includes(currentUserId) || false;
+                state.isLikedByPost[post._id] = post.likedByUsers?.some(user => user._id === currentUserId) || false;
             });
         },
         resetPostState : (state) => {

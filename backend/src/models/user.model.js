@@ -9,9 +9,9 @@ const userSchema = Schema(
             // required : true,
             lowercase : true,
             trim : true,
-            sparse : true,
-            // unique : true,
-            // index : true
+            // sparse : true,
+            unique : true,
+            index : true
         },
         email : {
             type : String,

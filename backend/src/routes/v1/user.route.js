@@ -5,14 +5,14 @@ import {upload} from "../../middlewares/multer.middleware.js"
 
 const router = Router()
 
-router.route('/register-basic').post(verifyJWT,
+router.route('/register-basic').patch(verifyJWT,
     upload.fields([
         {
             name : 'profilePicture',
             maxCount : 1
         }
-    ] , registerBasicUserDetails)
-)
+    ]) , registerBasicUserDetails)
+    
 router.route('/current-user').get(verifyJWT,getCurrentUser) 
 
 router.route('/register').post(registerUser)

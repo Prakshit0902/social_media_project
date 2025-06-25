@@ -20,6 +20,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { getUserProfile } from '../../store/slices/userSlice'
 import { useNavigate, useParams } from 'react-router-dom'
+import { followUser } from '../../store/slices/followSlice'
 
 // Helper for formatting large numbers
 const formatNumber = (num) => {
@@ -33,52 +34,52 @@ const formatNumber = (num) => {
 // --- DUMMY DATA MIRRORING YOUR MONGOOSE SCHEMA ---
 // This looks like the data you would get from `User.findById(id).populate('posts followers following')`
 
-const createDummyUser = () => ({
-  _id: '65c2f3b9a7b5e4c3f8a9b0c7',
-  identifier: 'aurora_stellaris',
-  email: 'aurora@example.com', // Private, not shown in UI
-  fullname: 'Aurora Stellaris',
-  profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aurora',
-  gender: 'female',
-  dob: new Date('1995-08-15'),
-  followers: Array(12500)
-    .fill(null)
-    .map((_, i) => ({
-      _id: `f${i}`,
-      identifier: `user_${i}`,
-      fullname: `Follower Name ${i}`,
-      avatar: `https://api.dicebear.com/7.x/pixel-art/svg?seed=f${i}`,
-    })),
-  following: Array(890)
-    .fill(null)
-    .map((_, i) => ({
-      _id: `fl${i}`,
-      identifier: `creator_${i}`,
-      fullname: `Following Name ${i}`,
-      avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=fl${i}`,
-    })),
-  followRequests: Array(23).fill(null), // Only length matters for the badge
-  posts: Array(18)
-    .fill(null)
-    .map((_, i) => ({
-      _id: `p${i}`,
-      image: `https://source.unsplash.com/random/400x400/?abstract,art&sig=${i}`,
-      likes: Math.floor(Math.random() * 5000),
-      comments: Math.floor(Math.random() * 200),
-    })),
-  stories: Array(3).fill(null), // For potential future use
-  isPrivate: false, // <-- TOGGLE this to `true` to test private profile view
-  isVerified: true,
-  bio: 'Digital artist crafting dreams into pixels ✨ | Explorer of virtual realms | Coffee-powered creator',
-  savedPosts: Array(45).fill(null),
-  lastActive: new Date(),
-  isOnline: true,
-  likedPosts: Array(320).fill(null),
-  commentedPosts: Array(50).fill(null), // Data exists but not shown in a tab per best practice
-  createdAt: new Date('2023-01-15T12:00:00Z'),
-  // Conceptual field for a banner image, common in profile pages
-  bannerImage: 'https://source.unsplash.com/random/1200x400/?abstract,galaxy',
-})
+// const createDummyUser = () => ({
+//   _id: '65c2f3b9a7b5e4c3f8a9b0c7',
+//   identifier: 'aurora_stellaris',
+//   email: 'aurora@example.com', // Private, not shown in UI
+//   fullname: 'Aurora Stellaris',
+//   profilePicture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aurora',
+//   gender: 'female',
+//   dob: new Date('1995-08-15'),
+//   followers: Array(12500)
+//     .fill(null)
+//     .map((_, i) => ({
+//       _id: `f${i}`,
+//       identifier: `user_${i}`,
+//       fullname: `Follower Name ${i}`,
+//       avatar: `https://api.dicebear.com/7.x/pixel-art/svg?seed=f${i}`,
+//     })),
+//   following: Array(890)
+//     .fill(null)
+//     .map((_, i) => ({
+//       _id: `fl${i}`,
+//       identifier: `creator_${i}`,
+//       fullname: `Following Name ${i}`,
+//       avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=fl${i}`,
+//     })),
+//   followRequests: Array(23).fill(null), // Only length matters for the badge
+//   posts: Array(18)
+//     .fill(null)
+//     .map((_, i) => ({
+//       _id: `p${i}`,
+//       image: `https://source.unsplash.com/random/400x400/?abstract,art&sig=${i}`,
+//       likes: Math.floor(Math.random() * 5000),
+//       comments: Math.floor(Math.random() * 200),
+//     })),
+//   stories: Array(3).fill(null), // For potential future use
+//   isPrivate: false, // <-- TOGGLE this to `true` to test private profile view
+//   isVerified: true,
+//   bio: 'Digital artist crafting dreams into pixels ✨ | Explorer of virtual realms | Coffee-powered creator',
+//   savedPosts: Array(45).fill(null),
+//   lastActive: new Date(),
+//   isOnline: true,
+//   likedPosts: Array(320).fill(null),
+//   commentedPosts: Array(50).fill(null), // Data exists but not shown in a tab per best practice
+//   createdAt: new Date('2023-01-15T12:00:00Z'),
+// Conceptual field for a banner image, common in profile pages
+//   bannerImage: 'https://source.unsplash.com/random/1200x400/?abstract,galaxy',
+// })
 
 // const userData? = createDummyUser();
 
@@ -91,17 +92,18 @@ const UserProfileContainer = () => {
   const [showFollowing, setShowFollowing] = useState(false)
   const dispatch = useDispatch()
   const { loading, error, profileById } = useSelector((state) => state.user)
+  const {user} = useSelector((state) => state.auth)
   // This is the most important flag. In a real app, you would set this by comparing IDs:
   // const { user: loggedInUser } = useAuth();
-  // const isOwnProfile = loggedInUser._id === userData?._id;
+  // const isOwnProfile = loggedInUser._id === userData?._id
 
   const navigate = useNavigate()
   
-  
   const navigateToProfile = (username) => {
     navigate(`/dashboard/profile/${username}`);
+    setShowFollowers(false)
+    setShowFollowing(false)
   }
-
 
   useEffect(() => {
     if (identifier) {
@@ -158,6 +160,20 @@ const UserProfileContainer = () => {
 
   // Determine if the content should be visible
   const canViewContent = !userData?.isPrivate || isOwnProfile || isFollowing
+
+  useEffect(() => {  
+    const is = user?.following?.some(follow => follow._id === userData?._id) ?? false
+    console.log(is);
+    
+    setIsFollowing(is)
+  })
+
+  const handleFollow = (e) => {
+    console.log('follow button click');
+    
+    setIsFollowing(!isFollowing)
+    dispatch(followUser(userData?._id))
+  }
 
   return (
     <>
@@ -303,7 +319,7 @@ const UserProfileContainer = () => {
                   <div className="flex gap-2 w-full">
                     <motion.button
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setIsFollowing(!isFollowing)}
+                      onClick={() => {handleFollow()}}
                       className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
                         isFollowing
                           ? 'bg-white/10 text-white'
@@ -482,8 +498,8 @@ const UserProfileContainer = () => {
                 </button>
               </div>
               <div className="p-2 space-y-2 overflow-y-auto">
-                {(showFollowers ? userData?.followers : userData?.following)
-                  .slice(0, 20)
+                {((showFollowers ? userData?.followers : userData?.following ) || [])
+                  // .slice(0, 20)
                   .map((user, index) => (
                     <motion.div
                       key={user._id}
@@ -491,6 +507,7 @@ const UserProfileContainer = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
                       className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg transition-all cursor-pointer"
+                      onClick={() => navigateToProfile(user.username)}
                     >
                       <img
                         src={user.profilePicture}

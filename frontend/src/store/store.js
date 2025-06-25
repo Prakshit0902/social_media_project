@@ -5,6 +5,7 @@ import authReducer from './slices/authSlice.js';
 import userReducer from './slices/userSlice.js';
 import feedReducer from './slices/feedSlice.js';
 import postReducer from './slices/postSlice.js';
+import followReducer from './slices/followSlice.js';
 
 // Configuration for redux-persist
 const persistConfig = {
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
     user: userReducer,
     feed: feedReducer,
     post: postReducer,
+    follow : followReducer
 });
 
 // Wrap the root reducer with persistReducer to enable persistence

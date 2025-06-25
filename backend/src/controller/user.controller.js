@@ -82,17 +82,29 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const registerBasicUserDetails = asyncHandler(async (req,res) => {
-    const {dob,gender} = req.body
+    console.log('got the req.body as ',req.body)
+    const {dob,gender,username} = req.body
+    
+    const profilePictureLocalPath = req.files?.profilePicture?.[0]?.path
+    let pfpResponse = null
 
-    const profilePictureLocalPath = req.files?.profilePicture[0]?.path
+    if (profilePictureLocalPath) {
+        pfpResponse = await uploadOnCloudinary(profilePictureLocalPath);
 
-    const pfp = uploadOnCloudinary(profilePictureLocalPath)
+        if (!pfpResponse) {
+            console.error("Cloudinary upload failed, but proceeding without profile picture.");
+        }
+    }
     
     const user = await User.findById(req.user._id).select('-password -refreshToken')
     
     user.dob = dob
     user.gender = gender
-    user.profilePicture = pfp.url
+    user.username = username
+
+    if (pfpResponse && pfpResponse.url) {
+        user.profilePicture = pfpResponse.url;
+    }
 
     await user.save({validateBeforeSave : false})
 
@@ -600,7 +612,7 @@ const followAnUser = asyncHandler(async (req,res) => {
 
     return res.status(200)
     .json(
-        new ApiResponse(200,{isFollowing,disableFollowButton},message)
+        new ApiResponse(200,{isFollowing,disableFollowButton,currentUser},message)
     )
     
 })

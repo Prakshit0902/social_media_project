@@ -54,6 +54,8 @@ function Home() {
         }
 
         console.log(feedPosts);
+        console.log(user);
+        
         
     }, [dispatch, feedPosts, user?._id]);
 
@@ -105,7 +107,7 @@ function Home() {
               feedPostshares: post.shares,
               postComments: post.comments,
               postDescription: post.caption,
-              isLiked: isLikedByPost[post._id] ?? post.likedBy?.includes(user?._id) ?? false,
+              isLiked: isLikedByPost[post._id] ?? post.likedByUsers?.includes(user?._id) ?? false,
               key: post._id ? `feed-post-${post._id}` : `fallback-feed-${post.owner}-${idx}-${Date.now()}`,
               postMentions: post.mentions || [],
               likedByUsers : post.likedByUsers || []

@@ -49,9 +49,9 @@ export function NavBar() {
       console.log('no user found');
     }
 
-    if (user?.data?._id){
-      console.log(user.data)
-      navigate(`/dashboard/profile/${user?.data?._id}`)
+    if (user?._id){
+      console.log(user.username)
+      navigate(`/dashboard/profile/${user?.username}`)
     }
 
   }

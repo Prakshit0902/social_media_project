@@ -1,67 +1,133 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useRef } from 'react';
-import { fetchCurrentUser, refreshAccessToken } from './store/slices/authSlice';
+import { initializeAuth } from './store/slices/authSlice';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+
+// Layouts
 import AuthLayout from './layouts/AuthLayout';
 import { DashBoardLayout } from './layouts/DashBoardLayout';
+
+// Components
 import { LoginForm } from './components/LandingPage/LoginForm';
 import { SignUpForm } from './components/LandingPage/SignUpForm';
 import { Home } from './components/DashBoard/Home';
 import { ExploreSection } from './components/ExploreSection/ExploreSection';
 import { UserProfileContainer } from './components/UserProfilePage/UserProfileContainer';
+import { RegisterBasicDetails } from './components/LandingPage/RegisterBasicDetails';
+import { LoadingScreen } from './components/LoadingScreen/LoadingScreen';
+
 
 function App() {
   const dispatch = useDispatch();
-  const { user, authChecked, isAuthenticated, loading } = useSelector((state) => state.auth);
-  const hasInitialized = useRef(false);
+  const { 
+    user, 
+    authChecked, 
+    isAuthenticated, 
+    isTransitioning,
+    loading 
+  } = useSelector((state) => state.auth);
+  
+  const appInitialized = useRef(false);
 
   useEffect(() => {
-    // Prevent multiple initialization attempts
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-
-    const initAuth = async () => {
-      try {
-        // First try to get current user
-        const result = await dispatch(fetchCurrentUser()).unwrap();
-        // If fetchCurrentUser fails, result will be rejected
-      } catch (error) {
-        // Only try refresh token if fetchCurrentUser failed
-        try {
-          await dispatch(refreshAccessToken()).unwrap();
-        } catch (refreshError) {
-          // Both failed, user is not authenticated
-          console.log('User is not authenticated');
-        }
-      }
-    };
-
-    initAuth();
+    if (!appInitialized.current) {
+      appInitialized.current = true;
+      console.log("Initializing user session...");
+      dispatch(initializeAuth());
+    }
   }, [dispatch]);
 
-  // Show loading while checking authentication
-  if (!authChecked || loading) {
-    return <div className="w-full h-screen flex items-center justify-center">Loading...</div>;
+  // Show loading screen during initial auth check
+  if (!authChecked) {
+    return <LoadingScreen message="Initializing Session..." />;
+  }
+
+  // Show loading screen during any transition or loading state
+  if (isTransitioning || (loading && isAuthenticated)) {
+    return <LoadingScreen message="Updating Profile..." />;
+  }
+
+  // Derive profile completion status
+  const isProfileComplete = !!user?.username;
+
+  // Additional check: if authenticated but still loading, show loading screen
+  if (isAuthenticated && loading) {
+    return <LoadingScreen message="Loading..." />;
   }
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthLayout />}>
+        {/* ROUTE GROUP 1: PUBLIC AUTH ROUTES */}
+        <Route 
+          path="/" 
+          element={
+            !isAuthenticated ? (
+              <AuthLayout />
+            ) : (
+              <Navigate to={isProfileComplete ? "/dashboard" : "/complete-profile"} replace />
+            )
+          }
+        >
           <Route index element={<LoginForm />} />
           <Route path="register" element={<SignUpForm />} />
         </Route>
-        
-        <Route path="/dashboard" element={isAuthenticated ? <DashBoardLayout /> : <Navigate to="/" replace />}>
+
+        {/* ROUTE GROUP 2: PROFILE COMPLETION ROUTE */}
+        <Route
+          path="/complete-profile"
+          element={
+            isAuthenticated ? (
+              isProfileComplete ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <AuthLayout />
+              )
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        >
+          <Route index element={<RegisterBasicDetails />} />
+        </Route>
+
+        {/* ROUTE GROUP 3: PROTECTED APPLICATION ROUTES */}
+        <Route 
+          path="/dashboard" 
+          element={
+            isAuthenticated ? (
+              isProfileComplete ? (
+                <DashBoardLayout />
+              ) : (
+                <Navigate to="/complete-profile" replace />
+              )
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        >
           <Route index element={<Home />} />
           <Route path="explore" element={<ExploreSection />} />
           <Route path="profile/:identifier" element={<UserProfileContainer />} />
         </Route>
         
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* CATCH-ALL ROUTE */}
+        <Route 
+          path="*" 
+          element={
+            <Navigate 
+              to={
+                isAuthenticated 
+                  ? (isProfileComplete ? "/dashboard" : "/complete-profile") 
+                  : "/"
+              } 
+              replace 
+            />
+          } 
+        />
       </Routes>
     </BrowserRouter>
   );
 }
 
-export default App;   
+export default App;

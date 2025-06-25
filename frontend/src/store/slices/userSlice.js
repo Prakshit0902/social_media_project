@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import axios from "axios";
+import { followUser } from "./followSlice";
 
 const initialState = {
     profilesById: {},
@@ -89,6 +90,7 @@ const userSlice = createSlice({
             console.log('rejected',action.payload);
             
         })
+
     }
 })
 export const {resetUserState} = userSlice.actions

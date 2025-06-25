@@ -489,41 +489,36 @@ export function PostCard({
                         />
                         <div className="fixed inset-0 z-[101] pointer-events-none">
                             <motion.div
-                                ref={mentionsRef}
-                                className="pointer-events-auto absolute"
+                                ref={mentionsRef} // or likesRef for likes modal
+                                className="pointer-events-auto fixed"
+                                style={{
+                                    left: '50%',
+                                    top: '50%',
+                                    x: '-50%',
+                                    y: '-50%'
+                                }}
                                 initial={{ 
                                     opacity: 0,
                                     scale: 0,
-                                    x: modalOrigin.x,
-                                    y: modalOrigin.y,
-                                    translateX: '-50%',
-                                    translateY: '-50%'
+                                    x: modalOrigin.x - window.innerWidth / 2,
+                                    y: modalOrigin.y - window.innerHeight / 2,
                                 }}
                                 animate={{ 
                                     opacity: 1,
                                     scale: 1,
-                                    x: '50%',
-                                    y: '50%',
-                                    translateX: '-50%',
-                                    translateY: '-50%'
+                                    x: '-50%',
+                                    y: '-50%'
                                 }}
                                 exit={{ 
                                     opacity: 0,
                                     scale: 0,
-                                    x: modalOrigin.x,
-                                    y: modalOrigin.y,
-                                    translateX: '-50%',
-                                    translateY: '-50%'
+                                    x: modalOrigin.x - window.innerWidth / 2,
+                                    y: modalOrigin.y - window.innerHeight / 2,
                                 }}
                                 transition={{ 
                                     type: "spring",
                                     damping: 25,
                                     stiffness: 300
-                                }}
-                                style={{
-                                    position: 'fixed',
-                                    left: 0,
-                                    top: 0
                                 }}
                             >
                                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-[90vw] sm:w-full max-h-[80vh] overflow-hidden shadow-2xl">
@@ -592,41 +587,36 @@ export function PostCard({
                         />
                         <div className="fixed inset-0 z-[101] pointer-events-none">
                             <motion.div
-                                ref={likesRef}
-                                className="pointer-events-auto absolute"
+                                ref={mentionsRef} // or likesRef for likes modal
+                                className="pointer-events-auto fixed"
+                                style={{
+                                    left: '50%',
+                                    top: '50%',
+                                    x: '-50%',
+                                    y: '-50%'
+                                }}
                                 initial={{ 
                                     opacity: 0,
                                     scale: 0,
-                                    x: modalOrigin.x,
-                                    y: modalOrigin.y,
-                                    translateX: '-50%',
-                                    translateY: '-50%'
+                                    x: modalOrigin.x - window.innerWidth / 2,
+                                    y: modalOrigin.y - window.innerHeight / 2,
                                 }}
                                 animate={{ 
                                     opacity: 1,
                                     scale: 1,
-                                    x: '50%',
-                                    y: '50%',
-                                    translateX: '-50%',
-                                    translateY: '-50%'
+                                    x: '-50%',
+                                    y: '-50%'
                                 }}
                                 exit={{ 
                                     opacity: 0,
                                     scale: 0,
-                                    x: modalOrigin.x,
-                                    y: modalOrigin.y,
-                                    translateX: '-50%',
-                                    translateY: '-50%'
+                                    x: modalOrigin.x - window.innerWidth / 2,
+                                    y: modalOrigin.y - window.innerHeight / 2,
                                 }}
                                 transition={{ 
                                     type: "spring",
                                     damping: 25,
                                     stiffness: 300
-                                }}
-                                style={{
-                                    position: 'fixed',
-                                    left: 0,
-                                    top: 0
                                 }}
                             >
                                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-[90vw] sm:w-full max-h-[80vh] overflow-hidden shadow-2xl">
