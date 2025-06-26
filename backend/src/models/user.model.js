@@ -50,7 +50,11 @@ const userSchema = Schema(
             type : Schema.Types.ObjectId,
             ref : 'User'
         }],
-        followRequests : [{
+        followRequestsSent : [{
+            type : Schema.Types.ObjectId,
+            ref : 'User'
+        }],
+        followRequestsReceived : [{
             type : Schema.Types.ObjectId,
             ref : 'User'
         }],

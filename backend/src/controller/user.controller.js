@@ -8,6 +8,18 @@ import { ApiResponse } from '../utils/ApiResponse.js'
 import { Post } from '../models/post.model.js'
 
 
+const optionsRefresh = {
+    httpOnly: true,
+    secure: false,
+    maxAge: 10 * 24 * 60 * 60 * 1000
+}
+const options = {
+    httpOnly: true,
+    secure: false,
+    maxAge: 1 * 24 * 60 * 60 * 1000
+}
+
+
 const generateAccessAndRefereshTokens = async(userId) =>{
     try {
         const user = await User.findById(userId)
@@ -55,11 +67,6 @@ const registerUser = asyncHandler(async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-        maxAge: 24 * 60 * 60 * 1000 
-    };
 
     const createdUser = await User.findById(user._id).select('-password -refreshToken');
 
@@ -68,10 +75,7 @@ const registerUser = asyncHandler(async (req, res) => {
     return res
         .status(201)
         .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, {
-            ...options,
-            maxAge: 7 * 24 * 60 * 60 * 1000 
-        })
+        .cookie("refreshToken", refreshToken, optionsRefresh)
         .json(
             new ApiResponse(201, {
                 user: createdUser,
@@ -145,17 +149,6 @@ const loginUser = asyncHandler(async (req,res) => {
 
     const {accessToken,refreshToken} = await generateAccessAndRefereshTokens(user._id)
     const loggedInUser = await User.findById(user._id).select('-password -refreshToken')
-
-    const options = {
-        httpOnly : true,
-        secure : true,
-        maxAge : 1* 24 * 60 * 60 * 1000 
-    }
-    const optionsRefresh = {
-        httpOnly : true,
-        secure : true,
-        maxAge: 10* 24 * 60 * 60 * 1000
-    }
 
     console.log('logged in successfully')
     
@@ -232,18 +225,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Refresh token is expired or used")
             
         }
-    
-        const optionsRefresh = {
-            httpOnly: true,
-            secure: true,
-            maxAge: 10 * 24 * 60 * 60 * 1000
-        }
-        const options = {
-            httpOnly: true,
-            secure: true,
-            maxAge: 1 * 24 * 60 * 60 * 1000
-        }
-    
+
         const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
     
         return res
@@ -373,6 +355,38 @@ const updateBio = asyncHandler(async (req,res) => {
 
 })
 
+const updatePersonalDetails = asyncHandler(async (req,res) => {
+    const {dob,gender} = req.body
+
+    if (!dob && !gender){
+        throw new ApiError('400','No details provided')
+    }
+
+    let fieldsToUpdate = {}
+    if (dob){
+        fieldsToUpdate.dob = dob
+    }
+    if (gender){
+        fieldsToUpdate.gender = gender
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set : fieldsToUpdate
+        },
+        {
+            new : true
+        }
+    ).select('-password -refreshToken')
+
+
+    
+    return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Personal details updated successfully"))
+})
+
 // const getSavedPosts = asyncHandler(async (req,res) => {
 // })
 
@@ -383,16 +397,21 @@ const makeProfileVerified = asyncHandler(async (req,res) => {
 const makeProfilePrivateOrPublic = asyncHandler(async (req,res) => {
     const {isPrivate} = req.body
 
-    await User.findByIdAndUpdate(req.user._id,{
+    const currentUser = await User.findByIdAndUpdate(req.user._id,{
         $set : {
             isPrivate : !req.user.isPrivate
         }
-    })
+    },
+    {
+        new : true
+    }
+).select('-password -refreshToken')
 
+    
     return res
     .status(200)
     .json(
-        new ApiResponse(200, {isPrivate}, "privacy updated successfully")
+        new ApiResponse(200, {isPrivate,currentUser}, "privacy updated successfully")
     )
 
 })
@@ -552,7 +571,43 @@ const getUserProfilesById = asyncHandler(async (req,res) => {
 // After (Correct Solution)
 const followAnUser = asyncHandler(async (req, res) => {
     const { followUserId } = req.body;
+    // console.log(req.user);
+    
     // ... checks for following self, etc. ...
+    if (followUserId === req.user._id.toString()){
+        // disableFollowButton = true
+        return res.status(400).json(
+            new ApiResponse(400, {}, "You cannot follow yourself")
+        )
+    }
+
+    if (req.user?.followRequestsSent?.includes(followUserId)){
+        await User.findByIdAndUpdate(followUserId , {
+            $pull : {
+                $followRequestsReceived : req.user._id
+            }
+        },
+        {
+            new : true
+        }
+    )
+
+        const updatedCurrentUser = await User.findByIdAndUpdate(req.user._id , {
+            $pull : {
+                followRequestsSent : followUserId
+            }
+        },
+        {
+            new : true
+        } 
+        )
+
+        const message = 'Follow request withdrawn successfully'
+        return res.status(200).json(
+            new ApiResponse(200, { currentUser: updatedCurrentUser }, message)
+        )
+        
+    }
 
     // Find the user to follow
     const followUser = await User.findById(followUserId);
@@ -567,6 +622,21 @@ const followAnUser = asyncHandler(async (req, res) => {
         if (followUser.isPrivate) {
             // Handle private account logic (sending request)
             // ... your logic here is fine
+            updatedCurrentUser = await User.findByIdAndUpdate(req.user._id,
+            {
+                $addToSet : {
+                    followRequestsSent : followUserId
+                }
+            },
+            {
+                new : true
+            }
+            )
+
+            await User.findByIdAndUpdate(followUserId, {
+                $addToSet: { followRequestsReceived: req.user._id }
+            })
+            // isRequestSent = true
         } else {
             // Public account: update both users
             updatedCurrentUser = await User.findByIdAndUpdate(
@@ -577,7 +647,7 @@ const followAnUser = asyncHandler(async (req, res) => {
 
             await User.findByIdAndUpdate(followUserId, {
                 $addToSet: { followers: req.user._id }
-            });
+            })
             isFollowing = true;
         }
     } else {
@@ -615,6 +685,7 @@ const unfollowAnUser = asyncHandler(async (req, res) => {
         new ApiResponse(200, { currentUser: updatedCurrentUser }, 'User unfollowed successfully')
     );
 });
+
 const approveFollowRequest = asyncHandler(async (req,res) => {
     const {approveUserId} = req.body
 
@@ -632,7 +703,7 @@ const approveFollowRequest = asyncHandler(async (req,res) => {
         }
     )
 
-    const approveUser = await User.findByIdAndUpdate(approveUserId,
+    const approvedUser = await User.findByIdAndUpdate(approveUserId,
         {
             $push : {
                 following : req.user._id

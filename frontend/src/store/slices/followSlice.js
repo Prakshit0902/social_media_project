@@ -36,6 +36,8 @@ export const unFollowUser = createAsyncThunk(
     }
 )
 
+
+
 const followSlice = createSlice({
     name : 'follow',
     initialState : initialState,
@@ -68,6 +70,7 @@ const followSlice = createSlice({
             state.loading = false
             state.error = action.payload
         })
+
     }
 })
 

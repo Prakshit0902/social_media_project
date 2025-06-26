@@ -587,7 +587,7 @@ export function PostCard({
                         />
                         <div className="fixed inset-0 z-[101] pointer-events-none">
                             <motion.div
-                                ref={mentionsRef} // or likesRef for likes modal
+                                ref={likesRef} // or likesRef for likes modal
                                 className="pointer-events-auto fixed"
                                 style={{
                                     left: '50%',

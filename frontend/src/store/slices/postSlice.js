@@ -10,17 +10,36 @@ const initialState = {
 
 export const toggleLikePost = createAsyncThunk(
     'post/like',
-    async(postId, { rejectWithValue }) => {
+    // We add `thunkAPI` as the second argument to get access to `getState`
+    async (postId, { getState, rejectWithValue }) => {
         try {
+            // Get the current user's data from the auth slice
+            const { auth } = getState();
+            const currentUser = auth.user;
+
+            if (!currentUser) {
+                return rejectWithValue('User not authenticated');
+            }
+
             const response = await axios.post('/api/v1/post/like', { postId }, { withCredentials: true });
-            return response.data.data;
+
+            // --- THIS IS THE KEY CHANGE ---
+            // We now return a richer payload that includes the user info.
+            return {
+                ...response.data.data, // This contains { updatedPost, isLiked }
+                currentUser: {
+                    _id: currentUser._id,
+                    username: currentUser.username,
+                    profilePicture: currentUser.profilePicture,
+                    // You can add more fields if needed by the modal
+                }
+            };
         } catch (error) {
             const message = error?.response?.data?.message || error?.message || 'Failed to toggle like';
-            console.error('Toggle like error:', error);
             return rejectWithValue(message);
         }
     }
-);
+)
 
 const postSlice = createSlice({
     name: 'post',

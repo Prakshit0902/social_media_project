@@ -1,5 +1,6 @@
 import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import { toggleLikePost } from "./postSlice";
 
 const initialState = {
     explorePosts: [],
@@ -100,7 +101,33 @@ const feedSlice = createSlice({
             .addCase(getUserExploreFeed.rejected, (state, action) => {
                 state.exploreLoading = false;
                 state.error = action.payload;
-            });
+            })
+            .addCase(toggleLikePost.fulfilled, (state, action) => {
+                const { updatedPost, isLiked, currentUser } = action.payload;
+                
+                // Find the post within our feedPosts array
+                const postToUpdate = state.feedPosts.find(p => p._id === updatedPost._id);
+
+                if (postToUpdate) {
+                    // 1. Update the likes count
+                    postToUpdate.likes = updatedPost.likes;
+
+                    // 2. Update the likedByUsers array for the modal
+                    const isNowLiked = !isLiked; // The backend returns the state *before* the toggle
+
+                    if (isNowLiked) {
+                        // Add the current user to the list if they're not already there
+                        if (!postToUpdate.likedByUsers.some(u => u._id === currentUser._id)) {
+                            postToUpdate.likedByUsers.unshift(currentUser); // Add to beginning of the list
+                        }
+                    } else {
+                        // Remove the current user from the list
+                        postToUpdate.likedByUsers = postToUpdate.likedByUsers.filter(
+                            user => user._id !== currentUser._id
+                        );
+                    }
+                }
+            })
     }
 });
 

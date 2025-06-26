@@ -18,9 +18,10 @@ import {
   IconGenderFemale,
 } from '@tabler/icons-react'
 import { useDispatch, useSelector } from 'react-redux'
-import { getUserProfile } from '../../store/slices/userSlice'
-import { useNavigate, useParams } from 'react-router-dom'
+import { clearUserProfile, getUserProfile } from '../../store/slices/userSlice'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { followUser, unFollowUser } from '../../store/slices/followSlice'
+import ConfirmationModal from './ConfirmationModal'
 
 // Helper for formatting large numbers
 const formatNumber = (num) => {
@@ -100,7 +101,8 @@ const UserProfileContainer = () => {
 
   const navigate = useNavigate()
 
-  
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isProcessingRequest, setIsProcessingRequest] = useState(false);
   
   const navigateToProfile = (username) => {
     navigate(`/dashboard/profile/${username}`);
@@ -113,12 +115,16 @@ const UserProfileContainer = () => {
       dispatch(getUserProfile(identifier))
       console.log(profileById)
     }
+
+    return () => {
+        dispatch(clearUserProfile());
+    }
   }, [dispatch, identifier])
   
   const userData = profileById?.user
   const isOwnProfile = profileById?.isOwner // <-- TOGGLE to `true` to see your own private view
-  console.log(profileById)
-  console.log(isOwnProfile)
+  // console.log(profileById)
+  // console.log(isOwnProfile)
   
   const calculateAge = (dob) =>
     dob
@@ -175,27 +181,69 @@ const UserProfileContainer = () => {
     return user.following.some((followedUser) => followedUser._id === userData._id);
   }, [user?.following, userData?._id])
 
+  const isPrivate = userData?.isPrivate
+  const isRequested = user?.followRequestsSent?.includes(userData?._id)
 
+  // console.log(user);
+  // console.log(userData);
+  
+  // console.log(isRequested,'isRequested');
+  
   const canViewContent = !userData?.isPrivate || isOwnProfile || isFollowing
   
   
-  const handleFollow = async () => {
-    if (isProcessingFollow || !userData?._id) return; // Prevent multiple clicks
+const handleFollow = async () => {
+  if (isProcessingFollow || !userData?._id) return;
 
-    setIsProcessingFollow(true);
-    try {
-      if (isFollowing) {
-        await dispatch(unFollowUser(userData._id)).unwrap();
-      } else {
-        await dispatch(followUser(userData._id)).unwrap();
-      }
-    } catch (err) {
-      console.error('Failed to perform follow/unfollow action:', err);
-      // Optional: show a user-facing error message
-    } finally {
-      setIsProcessingFollow(false);
-    }
+  if (isRequested && !isFollowing) {
+    setShowConfirmModal(true);
+    return;
   }
+
+  setIsProcessingFollow(true);
+  try {
+    if (isFollowing) {
+      await dispatch(unFollowUser(userData._id)).unwrap();
+    } else {
+      await dispatch(followUser(userData._id)).unwrap();
+    }
+    // REMOVE THIS LINE: dispatch(getUserProfile(identifier));
+  } catch (err) {
+    console.error('Failed to perform follow/unfollow action:', err);
+  } finally {
+    setIsProcessingFollow(false);
+  }
+}
+
+const handleCancelRequest = async () => {
+  setIsProcessingRequest(true);
+  try {
+    // This will withdraw the follow request
+    await dispatch(followUser(userData._id)).unwrap();
+    
+    // REMOVE THIS LINE: dispatch(getUserProfile(identifier));
+    
+    setShowConfirmModal(false);
+  } catch (err) {
+    console.error('Failed to cancel follow request:', err);
+  } finally {
+    setIsProcessingRequest(false);
+  }
+}
+
+const getFollowButtonText = () => {
+  if (isProcessingFollow) return 'Processing...';
+  if (isFollowing) return 'Following';
+  if (isRequested) return 'Requested';
+  return 'Follow';
+};
+
+const getFollowButtonStyle = () => {
+  if (isFollowing || isRequested) {
+    return 'bg-white/10 text-white hover:bg-white/20';
+  }
+  return 'bg-gradient-to-r from-blue-500 to-cyan-400 text-black hover:opacity-90';
+}
 
   return (
     <>
@@ -218,20 +266,24 @@ const UserProfileContainer = () => {
             </div>
             {isOwnProfile && (
               <div className="absolute top-4 right-4 flex gap-2">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="p-2.5 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-colors"
-                >
-                  <IconEdit size={20} />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="p-2.5 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-colors"
-                >
-                  <IconSettings size={20} />
-                </motion.button>
+              <Link to="/dashboard/settings/profile">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="p-2.5 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-colors"
+                    >
+                      <IconEdit size={20} />
+                    </motion.div>
+                  </Link>
+                  <Link to="/dashboard/settings/account">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="p-2.5 bg-black/40 backdrop-blur-md rounded-full text-white/80 hover:text-white transition-colors"
+                    >
+                      <IconSettings size={20} />
+                    </motion.div>
+                  </Link>
               </div>
             )}
             <div className="absolute -bottom-20 md:-bottom-16 left-4 md:left-8 w-[calc(100%-2rem)] md:w-auto">
@@ -344,16 +396,11 @@ const UserProfileContainer = () => {
                           onClick={handleFollow}
                           // This is the most important part: disable the button based on our local state.
                           disabled={isProcessingFollow}
-                          className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                            isFollowing
-                              ? 'bg-white/10 text-white'
-                              : 'bg-gradient-to-r from-blue-500 to-cyan-400 text-black'
-                          } ${
-                            // Add a visual style to show the button is disabled.
-                            isProcessingFollow ? 'opacity-60 cursor-not-allowed' : ''
-                          }`}
+                          className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${getFollowButtonStyle()} 
+                          ${isProcessingFollow ? 'opacity-60 cursor-not-allowed' : ''
+  }`}
                         >
-                          {isProcessingFollow ? 'Processing...' : isFollowing ? 'Following' : 'Follow'}
+                          {getFollowButtonText()}
                       </motion.button>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
@@ -364,7 +411,7 @@ const UserProfileContainer = () => {
                   </div>
                 ) : (
                   <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white">
-                    <IconUserPlus size={18} /> {userData?.followRequests.length}{' '}
+                    <IconUserPlus size={18} /> {userData?.followRequestsReceived?.length}{' '}
                     Follow Requests
                   </button>
                 )}
@@ -563,6 +610,17 @@ const UserProfileContainer = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleCancelRequest}
+        title="Withdraw Request?"
+        message={`Are you sure you want to withdraw your follow request to @${userData?.username}?`}
+        confirmText="Withdraw"
+        cancelText="Keep Request"
+        isProcessing={isProcessingRequest}
+      />
     </>
   )
 }

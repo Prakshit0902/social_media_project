@@ -15,6 +15,9 @@ import { ExploreSection } from './components/ExploreSection/ExploreSection';
 import { UserProfileContainer } from './components/UserProfilePage/UserProfileContainer';
 import { RegisterBasicDetails } from './components/LandingPage/RegisterBasicDetails';
 import { LoadingScreen } from './components/LoadingScreen/LoadingScreen';
+import { EditProfile } from './components/SettingsComponent/EditProfile';
+import { Settings } from './components/SettingsComponent/Settings';
+import { SettingsLayout } from './layouts/SettingsLayout';
 
 
 function App() {
@@ -109,6 +112,14 @@ function App() {
           <Route index element={<Home />} />
           <Route path="explore" element={<ExploreSection />} />
           <Route path="profile/:identifier" element={<UserProfileContainer />} />
+          
+          <Route path="settings" element={<SettingsLayout />}>
+          {/* Redirects /dashboard/settings to /dashboard/settings/profile by default */}
+          <Route index element={<Navigate to="profile" replace />} />
+          <Route path="profile" element={<EditProfile />} />
+          <Route path="account" element={<Settings />} />
+        </Route>
+        {/* --- END OF NEW SETTINGS ROUTE GROUP --- */}
         </Route>
         
         {/* CATCH-ALL ROUTE */}

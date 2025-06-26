@@ -44,12 +44,61 @@
         }
     )
 
+    export const updateAccountDetails = createAsyncThunk(
+        'user/update',
+        async (formData,{rejectWithValue}) => {
+            try {
+                const response = await axios.patch('/api/v1/user/update-account-details',formData,{withCredentials : true})
+                return response.data
+            } catch (error) {
+                const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
+                console.log(message)
+                return rejectWithValue(message)   
+            }
+        }
+    )
+
+    export const updateBio = createAsyncThunk(
+        'user/update-bio',
+        async(formData,{rejectWithValue}) => {
+            try {
+                const response = await axios.patch('/api/v1/user/update-bio',formData,{withCredentials : true})
+                return response.data
+            } catch (error) {
+                const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
+                console.log(message)
+                return rejectWithValue(message)   
+            }
+        }
+    )
+
+    export const makeProfilePrivateOrPublic = createAsyncThunk(
+        'user/update-privacy',
+        async(isPrivate,{rejectWithValue}) => {
+            try {
+            
+                const response = await axios.post('/api/v1/user/profile-privacy',{isPrivate},{withCredentials : true})
+                console.log(response.data);
+                
+                return response.data
+            } catch (error) {
+                const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
+                console.log(message)
+                return rejectWithValue(message)   
+            }
+        }
+    )
     const userSlice = createSlice({
         name : 'user',
         initialState : initialState,
         reducers : {
             resetUserState : (state) => {
                 return initialState
+            },
+            clearUserProfile: (state) => {
+                state.profileById = null
+                state.loading = false // Reset loading state
+                state.error = null
             }
         },
 
@@ -58,9 +107,10 @@
             .addCase(getUserProfilesByIds.pending , (state) => {
                 state.loading = true
                 state.error = null
-                state.profilesById = {}
+                // state.profilesById = {}
             })
             .addCase(getUserProfilesByIds.fulfilled , (state,action) => {
+                state.loading = false
                 action.payload.users.forEach(user => {
                     state.profilesById[user._id] = user;
                 })
@@ -80,7 +130,7 @@
                 state.loading = false
                 state.error = null
                 state.profileById = action.payload
-                // console.log('action payload',action.payload);
+                console.log('action payload',action.payload);
                 
             })
             .addCase(getUserProfile.rejected , (state,action) => {
@@ -91,35 +141,88 @@
                 
             })
             .addCase(followUser.fulfilled, (state, action) => {
-                const loggedInUser = action.payload?.data?.currentUser;
-                const followedUserId = action.meta.arg; // This is the ID passed to the thunk
+                const { currentUser, message } = action.payload.data;
+                const followedUserId = action.meta.arg; // ID of the user being actioned on
 
-                // Check if the currently viewed profile is the one that was just followed
-                if (state.profileById?.user?._id === followedUserId && loggedInUser) {
-                // Add the logged-in user to the followers list of the profile being viewed
-                state.profileById.user.followers.push({
-                    _id: loggedInUser._id,
-                    username: loggedInUser.username,
-                    fullname: loggedInUser.fullname,
-                    profilePicture: loggedInUser.profilePicture,
-                });
+                // --- SAFETY CHECKS ---
+                // 1. Make sure we have a profile loaded in the state
+                if (!state.profileById?.user) {
+                    return;
+                }
+                // 2. Make sure the action corresponds to the profile we are currently viewing
+                if (state.profileById.user._id !== followedUserId) {
+                    return;
+                }
+                // 3. Make sure we have the logged-in user's info to perform the update
+                if (!currentUser?._id) {
+                    return;
+                }
+                
+                // --- LOGIC BASED ON API MESSAGE ---
+
+                if (message?.startsWith("You started following")) {
+                    console.log('reached her ');
+                    
+                    // Add the logged-in user to the followers list
+                    if (Array.isArray(state.profileById.user.followers)) {
+                        state.profileById.user.followers.push({
+                            _id: currentUser._id,
+                            username: currentUser.username,
+                            fullname: currentUser.fullname,
+                            profilePicture: currentUser.profilePicture,
+                        });
+                    }
+                } 
+                else if (message?.startsWith("Follow request withdrawn")) {
+                    console.log('reached her withdr');
+                    // THIS IS THE CRITICAL FIX: Remove the logged-in user's ID from the received requests list
+                    if (Array.isArray(state.profileById.user.followRequestsReceived)) {
+                        state.profileById.user.followRequestsReceived = 
+                            state.profileById.user.followRequestsReceived.filter(
+                                (id) => id.toString() !== currentUser._id.toString()
+                            );
+                    }
+                } 
+                else if (message?.startsWith("Follow request sent")) {
+                    console.log('reached her requ');
+                    // Add the logged-in user's ID to the received requests list
+                    if (Array.isArray(state.profileById.user.followRequestsReceived)) {
+                        // Use addToSet logic to be safe
+                        if (!state.profileById.user.followRequestsReceived.includes(currentUser._id)) {
+                            state.profileById.user.followRequestsReceived.push(currentUser._id);
+                        }
+                    }
                 }
             })
             .addCase(unFollowUser.fulfilled, (state, action) => {
-                const loggedInUser = action.payload?.data?.currentUser;
-                const unfollowedUserId = action.meta.arg; // This is the ID passed to the thunk
+                const { currentUser } = action.payload.data;
+                const unfollowedUserId = action.meta.arg;
 
-                // Check if the currently viewed profile is the one that was just unfollowed
-                if (state.profileById?.user?._id === unfollowedUserId && loggedInUser) {
-                // Remove the logged-in user from the followers list
-                state.profileById.user.followers =
-                    state.profileById.user.followers.filter(
-                    (follower) => follower._id !== loggedInUser._id
-                    );
+                if (state.profileById?.user?._id === unfollowedUserId && currentUser?._id) {
+                    if (Array.isArray(state.profileById.user.followers)) {
+                        state.profileById.user.followers =
+                            state.profileById.user.followers.filter(
+                                (follower) => follower._id.toString() !== currentUser._id.toString()
+                            );
+                    }
                 }
+            })
+            .addCase(makeProfilePrivateOrPublic.pending , (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(makeProfilePrivateOrPublic.fulfilled , (state,action) => {
+                state.loading = false
+                state.error = null
+
+            })
+            .addCase(makeProfilePrivateOrPublic.rejected,(state,action) => {
+                state.loading = false
+                state.error = action.payload
+
             })
 
         }
     })
-    export const {resetUserState} = userSlice.actions
+    export const {resetUserState,clearUserProfile } = userSlice.actions
     export default userSlice.reducer

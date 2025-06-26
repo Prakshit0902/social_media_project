@@ -4,6 +4,7 @@
   import { resetExplorePage, resetFeedPage } from "./feedSlice";
   import { persistor } from "../store";
   import { followUser, unFollowUser } from "./followSlice";
+import { makeProfilePrivateOrPublic } from "./userSlice";
 
 
   const initialState = {
@@ -265,15 +266,26 @@
         state.authChecked = true; // Crucially, the check is complete.
         state.loading = false;
       })
-      .addCase(followUser.fulfilled , (state,action) => {
-        if (action.payload && action.payload.data) {
-            state.user = action.payload.data?.currentUser;
-        }
-
+      .addCase(followUser.fulfilled, (state, action) => {
+          const response = action.payload.data;
+          
+          if (response.currentUser) {
+              // Update the authenticated user's data including:
+              // - following array
+              // - followRequestsSent array
+              state.user = response.currentUser;
+          }
       })
       .addCase(unFollowUser.fulfilled, (state, action) => {
-        if (action.payload && action.payload.data) {
-          state.user = action.payload.data?.currentUser;
+          const response = action.payload.data;
+          
+          if (response.currentUser) {
+              state.user = response.currentUser;
+          }
+      })
+      .addCase(makeProfilePrivateOrPublic.fulfilled , (state,action) => {
+        if (action.payload && action.payload.data){
+          state.user = action.payload.data?.currentUser
         }
       })
 

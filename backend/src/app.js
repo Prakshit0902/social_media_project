@@ -4,11 +4,21 @@ import cors from 'cors'
 import routes from './routes/index.js'
 
 const app = express()
+const allowedOrigins = ["http://localhost:5173","http://192.168.252.186:5173" ]
 
 app.use(json())
 app.use(cookieParser())
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin:  function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,               
 }))
 
