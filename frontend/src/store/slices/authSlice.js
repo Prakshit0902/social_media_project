@@ -3,7 +3,7 @@
   import { useDispatch } from "react-redux";
   import { resetExplorePage, resetFeedPage } from "./feedSlice";
   import { persistor } from "../store";
-  import { followUser, unFollowUser } from "./followSlice";
+  import { approveFollowRequest, followUser, rejectFollowRequest, unFollowUser } from "./followSlice";
 import { makeProfilePrivateOrPublic } from "./userSlice";
 
 
@@ -267,20 +267,32 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
         state.loading = false;
       })
       .addCase(followUser.fulfilled, (state, action) => {
-          const response = action.payload.data;
-          
-          if (response.currentUser) {
-              // Update the authenticated user's data including:
-              // - following array
-              // - followRequestsSent array
-              state.user = response.currentUser;
+        const { currentUser } = action.payload.data;
+        console.log(currentUser);
+        
+        if (currentUser) {
+            // This updates the logged-in user's `following` and `followRequestsSent` arrays
+            state.user = currentUser;
+        }
+        })
+      .addCase(unFollowUser.fulfilled, (state, action) => {
+            // FIX: Added this missing case to keep the auth.user state in sync
+        const { currentUser } = action.payload.data;
+        if (currentUser) {
+            state.user = currentUser;
+        }
+        })
+      .addCase(approveFollowRequest.fulfilled, (state, action) => {
+          const { currentUser } = action.payload.data;
+          // When the logged-in user approves a request, their `followRequestsReceived` array changes.
+          if (currentUser) {
+              state.user = currentUser;
           }
       })
-      .addCase(unFollowUser.fulfilled, (state, action) => {
-          const response = action.payload.data;
-          
-          if (response.currentUser) {
-              state.user = response.currentUser;
+      .addCase(rejectFollowRequest.fulfilled, (state, action) => {
+          const { currentUser } = action.payload.data;
+          if (currentUser) {
+              state.user = currentUser;
           }
       })
       .addCase(makeProfilePrivateOrPublic.fulfilled , (state,action) => {

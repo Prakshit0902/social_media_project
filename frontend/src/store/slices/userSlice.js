@@ -1,6 +1,6 @@
     import { createAsyncThunk, createSlice} from "@reduxjs/toolkit";
     import axios from "axios";
-    import { followUser, unFollowUser } from "./followSlice";
+    import { approveFollowRequest, followUser, rejectFollowRequest, unFollowUser } from "./followSlice";
 
     const initialState = {
         profilesById: {},
@@ -141,72 +141,97 @@
                 
             })
             .addCase(followUser.fulfilled, (state, action) => {
-                const { currentUser, message } = action.payload.data;
-                const followedUserId = action.meta.arg; // ID of the user being actioned on
+                const { status, currentUser } = action.payload.data;
+                const followedUserId = action.meta.arg;
 
-                // --- SAFETY CHECKS ---
-                // 1. Make sure we have a profile loaded in the state
-                if (!state.profileById?.user) {
+                if (!state.profileById?.user || state.profileById.user._id !== followedUserId) {
                     return;
                 }
-                // 2. Make sure the action corresponds to the profile we are currently viewing
-                if (state.profileById.user._id !== followedUserId) {
-                    return;
-                }
-                // 3. Make sure we have the logged-in user's info to perform the update
-                if (!currentUser?._id) {
-                    return;
-                }
-                
-                // --- LOGIC BASED ON API MESSAGE ---
 
-                if (message?.startsWith("You started following")) {
-                    console.log('reached her ');
-                    
-                    // Add the logged-in user to the followers list
-                    if (Array.isArray(state.profileById.user.followers)) {
+                switch (status) {
+                    case 'following':
+                        // This is correct: push the user object
                         state.profileById.user.followers.push({
                             _id: currentUser._id,
                             username: currentUser.username,
                             fullname: currentUser.fullname,
                             profilePicture: currentUser.profilePicture,
                         });
-                    }
-                } 
-                else if (message?.startsWith("Follow request withdrawn")) {
-                    console.log('reached her withdr');
-                    // THIS IS THE CRITICAL FIX: Remove the logged-in user's ID from the received requests list
-                    if (Array.isArray(state.profileById.user.followRequestsReceived)) {
-                        state.profileById.user.followRequestsReceived = 
+                        break;
+
+                    case 'requested':
+                        // --- THIS IS THE CRITICAL FIX ---
+                        // We must push the FULL USER OBJECT, not just the ID.
+                        // This makes the data structure consistent with what your backend sends on page load.
+                        state.profileById.user.followRequestsReceived.push({
+                            _id: currentUser._id,
+                            username: currentUser.username,
+                            fullname: currentUser.fullname,
+                            profilePicture: currentUser.profilePicture,
+                        });
+                        break;
+
+                    case 'withdrawn':
+                        // This logic is now also correct because we are filtering an array of objects
+                        state.profileById.user.followRequestsReceived =
                             state.profileById.user.followRequestsReceived.filter(
-                                (id) => id.toString() !== currentUser._id.toString()
+                                (requester) => requester._id.toString() !== currentUser._id.toString()
                             );
-                    }
-                } 
-                else if (message?.startsWith("Follow request sent")) {
-                    console.log('reached her requ');
-                    // Add the logged-in user's ID to the received requests list
-                    if (Array.isArray(state.profileById.user.followRequestsReceived)) {
-                        // Use addToSet logic to be safe
-                        if (!state.profileById.user.followRequestsReceived.includes(currentUser._id)) {
-                            state.profileById.user.followRequestsReceived.push(currentUser._id);
-                        }
-                    }
+                        break;
+                        
+                    default:
+                        break;
                 }
             })
+
             .addCase(unFollowUser.fulfilled, (state, action) => {
                 const { currentUser } = action.payload.data;
                 const unfollowedUserId = action.meta.arg;
 
-                if (state.profileById?.user?._id === unfollowedUserId && currentUser?._id) {
-                    if (Array.isArray(state.profileById.user.followers)) {
-                        state.profileById.user.followers =
-                            state.profileById.user.followers.filter(
-                                (follower) => follower._id.toString() !== currentUser._id.toString()
-                            );
-                    }
+                if (state.profileById?.user?._id === unfollowedUserId) {
+                    // Filter out the logged-in user from the followers list
+                    state.profileById.user.followers =
+                        state.profileById.user.followers.filter(
+                            (follower) => follower._id.toString() !== currentUser._id.toString()
+                        );
                 }
             })
+
+            .addCase(approveFollowRequest.fulfilled, (state, action) => {
+                // We are viewing our own profile (isOwner should be true)
+                if (!state.profileById?.user || !state.profileById.isOwner) {
+                    return;
+                }
+
+                // Destructure the NEW `approvedUser` object from our API response
+                const { approvedUser } = action.payload.data;
+                if (!approvedUser) return; // Safety check
+
+                // 1. Remove user from `followRequestsReceived` array
+                state.profileById.user.followRequestsReceived =
+                    state.profileById.user.followRequestsReceived.filter(
+                        (requester) => requester._id.toString() !== approvedUser._id.toString()
+                    );
+
+                // 2. Add the full user object to `followers` array
+                state.profileById.user.followers.push(approvedUser);
+            })
+
+            .addCase(rejectFollowRequest.fulfilled, (state, action) => {
+                // The user ID of the rejected person is passed in the thunk argument
+                const rejectedUserId = action.meta.arg;
+
+                if (!state.profileById?.user || !state.profileById.isOwner) {
+                    return;
+                }
+
+                // Remove user from `followRequestsReceived` array by their ID
+                state.profileById.user.followRequestsReceived =
+                    state.profileById.user.followRequestsReceived.filter(
+                        (requester) => requester._id.toString() !== rejectedUserId.toString()
+                    );
+            })
+
             .addCase(makeProfilePrivateOrPublic.pending , (state) => {
                 state.loading = true
                 state.error = null

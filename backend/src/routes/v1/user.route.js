@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import { approveFollowRequest, changePassword, exploreSection, followAnUser, getCurrentUser, getUserProfile, getUserProfilesById, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, postFeeds, refreshAccessToken, registerBasicUserDetails, registerUser, unfollowAnUser, updateAccountDetails, updateBio, updateUserProfilePicture } from '../../controller/user.controller.js'
+import { approveFollowRequest, changePassword, exploreSection, followAnUser, getCurrentUser, getUserProfile, getUserProfilesById, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, postFeeds, refreshAccessToken, registerBasicUserDetails, registerUser, rejectFollowRequest, unfollowAnUser, updateAccountDetails, updateBio, updateUserProfilePicture } from '../../controller/user.controller.js'
 import { verifyJWT } from '../../middlewares/auth.middleware.js'    
 import {upload} from "../../middlewares/multer.middleware.js"
 
@@ -32,6 +32,7 @@ router.route('/profile-verification').post(verifyJWT,makeProfileVerified)
 router.route('/follow-user').post(verifyJWT,followAnUser)
 router.route('/unfollow-user').post(verifyJWT,unfollowAnUser)
 router.route('/approve-follow-request').post(verifyJWT,approveFollowRequest)
+router.route('/reject-follow-request').post(verifyJWT,rejectFollowRequest)
 
 router.route('/explore').get(verifyJWT,exploreSection)
 router.route('/post-feed').get(verifyJWT,postFeeds)
