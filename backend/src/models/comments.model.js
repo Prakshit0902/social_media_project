@@ -15,6 +15,7 @@ const commentSchema = Schema(
         },
         content: {
             type: String,
+            min : 10,
             required: true,
             trim: true,
             maxLength : 1000

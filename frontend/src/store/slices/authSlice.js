@@ -5,6 +5,7 @@
   import { persistor } from "../store";
   import { approveFollowRequest, followUser, rejectFollowRequest, unFollowUser } from "./followSlice";
 import { makeProfilePrivateOrPublic } from "./userSlice";
+import { axiosPrivate, axiosPublic } from "../../utils/api";
 
 
   const initialState = {
@@ -22,7 +23,7 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
       try {
         console.log(formData)
         
-        const response = await axios.patch('/api/v1/user/register-basic',formData,{withCredentials : true})
+        const response = await axiosPublic.patch('/api/v1/user/register-basic',formData,{withCredentials : true})
         console.log(response)
         
         return response.data
@@ -39,7 +40,7 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
     "user/refresh-access-token",
     async (_,{rejectWithValue}) => {
       try {
-        const response = await axios.post('/api/v1/user/refresh-access-token',{},{withCredentials : true})
+        const response = await axiosPublic.post('/api/v1/user/refresh-access-token')
         return response.data
       } catch (error) {
         const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
@@ -68,7 +69,7 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
     "user/register",
     async (userData, { rejectWithValue }) => {
       try {
-        const response = await axios.post("/api/v1/user/register", userData);
+        const response = await axiosPublic.post("/api/v1/user/register", userData);
         console.log('success');
         
         return response.data;
@@ -89,7 +90,7 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
     'user/login',
     async (userData, {rejectWithValue}) => {
       try {
-        const response = await axios.post('/api/v1/user/login',userData, {withCredentials : true}) 
+        const response = await axiosPublic  .post('/api/v1/user/login',userData, {withCredentials : true}) 
         return {
           user: response.data.data.user,
           accessToken: response.data.data.accessToken,
@@ -106,7 +107,7 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
     'user/logout',
     async (_,{rejectWithValue}) => {
       try {
-          const response = await axios.post('/api/v1/user/logout', {} , {withCredentials : true})
+          const response = await axiosPrivate.post('/api/v1/user/logout', {} , {withCredentials : true})
           return response.data
       } catch (error) {
           const message = error.response?.data?.message || error?.message || 'Unknown error occured during login' 
@@ -133,7 +134,7 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
           const refreshTokenResponse = await dispatch(refreshAccessToken()).unwrap();
           return refreshTokenResponse;
         } catch (refreshError) {
-          console.log("Token refresh failed. User is not authenticated.");
+          console.log("Token refresh failed. User is not authenticated.",refreshError);
           return rejectWithValue(refreshError);
         }
       }
@@ -163,7 +164,7 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
       })
       .addCase(signupUser.fulfilled, (state, action) => {
         state.loading = false;
-        // --- MODIFICATION: Extract user from the .data property of the API response ---
+        // --- MODIFICATION: Extract user from the .data property of the axiosPrivate response ---
         state.user = action.payload.data; 
         state.isAuthenticated = true;
         state.authChecked = true;
@@ -178,11 +179,10 @@ import { makeProfilePrivateOrPublic } from "./userSlice";
         state.error = null;
       })
       .addCase(loginUser.fulfilled,(state,action) => {
-        state.loading = false;
-        // --- MODIFICATION: Your login payload has the user nested under `data.user` ---
-        state.user = action.payload.data;
-        state.isAuthenticated = true;
-        state.authChecked = true;
+          state.loading = false;
+          state.user = action.payload.user; // Correctly access the .user property
+          state.isAuthenticated = true;
+          state.authChecked = true;
       })
       .addCase(loginUser.rejected, (state,action) => {
         state.loading = false;

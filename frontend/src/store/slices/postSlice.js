@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import  { axiosPrivate } from "../../utils/api";
+// import api from "api";
 
 const initialState = {
     likesByPost: {},
     isLikedByPost: {},
     loading: false,
     error: null,
+    commentsByPost : {}
 }
 
 export const toggleLikePost = createAsyncThunk(
@@ -21,7 +23,7 @@ export const toggleLikePost = createAsyncThunk(
                 return rejectWithValue('User not authenticated');
             }
 
-            const response = await axios.post('/api/v1/post/like', { postId }, { withCredentials: true });
+            const response = await axiosPrivate.post('/api/v1/post/like', { postId }, { withCredentials: true });
 
             // --- THIS IS THE KEY CHANGE ---
             // We now return a richer payload that includes the user info.

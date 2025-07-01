@@ -19,7 +19,7 @@ function Home() {
         if (isAuthenticated) {
             dispatch(getUserPostFeed(feedPage + 1));
         }
-    };
+    }
     const loadMoreRef = useInfiniteScroll(loadMore, feedLoading, hasMoreFeed);
     
     const initialLoadDone = useRef(false);
@@ -53,8 +53,8 @@ function Home() {
             
         }
 
-        console.log(feedPosts);
-        console.log(user);
+        // console.log(feedPosts);
+        // console.log(user);
         
         
     }, [dispatch, feedPosts, user?._id]);

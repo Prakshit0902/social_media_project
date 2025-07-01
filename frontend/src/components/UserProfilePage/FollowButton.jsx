@@ -6,11 +6,14 @@ import { followUser, unFollowUser } from '../../store/slices/followSlice';
 // This reusable component determines its own state based on the user passed to it.
 const FollowButton = ({ targetUser }) => {
     const dispatch = useDispatch();
-
+    
     // Get the logged-in user and the loading state from the follow slice
     const { user: loggedInUser } = useSelector((state) => state.auth);
     const { loading: followActionLoading, loadingId } = useSelector((state) => state.follow); // Assuming your followSlice has `loadingId`
-
+    
+    console.log(targetUser,'target User');
+    console.log(loggedInUser,'loggedin user');
+    
     // useEffect(() => {
     //     // This code will run every time the button re-renders due to data changes.
     //     console.group(`[DEBUG] FollowButton for: @${targetUser?.username}`);
@@ -50,7 +53,8 @@ const FollowButton = ({ targetUser }) => {
         // Source B: Check the logged-in user's sent requests (the persistent truth after a reload)
         loggedInUser.followRequestsSent?.includes(targetUser._id);
 
-    const handleFollowToggle = () => {
+    const handleFollowToggle = (e) => {
+        
         if (isFollowing) {
             dispatch(unFollowUser(targetUser._id));
         } else {

@@ -13,12 +13,61 @@ import {
     IconBookmark,
     IconBookmarkFilled
 } from "@tabler/icons-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toggleLikePost } from "../../store/slices/postSlice";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useOutsideClick } from "../../hooks/use-outside-click";
 import { PostVideoPlayer } from "./PostVideoPlayer";
+import FollowButton from "../UserProfilePage/FollowButton";
+import CommentsModal from "../Comments/CommentsModal";
+import { addOptimisticComment, clearComments, createComment, getCommentsByPostId, removeOptimisticComment, replaceOptimisticComment } from "../../store/slices/commentSlice";
+
+
+const dummyLoggedInUser = {
+    _id: 'user_101', // Your logged-in user's ID
+    username: 'current_user',
+    profilePicture: 'https://i.pravatar.cc/150?u=user_101'
+}
+
+const dummyComments = [
+    {
+        _id: 'comment_001',
+        post: 'post_abc',
+        user: { _id: 'user_102', username: 'sarah_jones', profilePicture: 'https://i.pravatar.cc/150?u=user_102' },
+        content: "This is an amazing photo! The colors are stunning. I've always wanted to visit a place like this.",
+        likes: 15,
+        likedBy: ['user_101', 'user_103'], // Logged-in user has liked this one.
+        replies: [{ _id: 'comment_005' }], // Has one reply
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+        isEdited: false,
+        isDeleted: false,
+    },
+    {
+        _id: 'comment_002',
+        post: 'post_abc',
+        user: { _id: 'user_103', username: 'mike_wilson', profilePicture: 'https://i.pravatar.cc/150?u=user_103' },
+        content: 'I agree with Sarah!',
+        likes: 3,
+        likedBy: ['user_104'], // Logged-in user has NOT liked this.
+        replies: [],
+        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+        isEdited: true, // This comment has been edited.
+        isDeleted: false,
+    },
+    {
+        _id: 'comment_003',
+        post: 'post_abc',
+        user: { _id: 'user_104', username: 'deleted_user', profilePicture: 'https://i.pravatar.cc/150?u=user_104' },
+        content: 'This was a controversial comment.',
+        likes: 0,
+        likedBy: [],
+        replies: [],
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+        isEdited: false,
+        isDeleted: true, // This comment has been deleted.
+    }
+];
 
 const slideVariants = {
     // The entering image will slide in from the right (100%) or left (-100%)
@@ -76,10 +125,32 @@ export function PostCard({
     const likesRef = useRef(null);
     const mentionButtonRef = useRef(null);
     const likeButtonRef = useRef(null);
-
+    const commentButtonRef = useRef(null);
+    
     const [slideDirection, setSlideDirection] = useState(1);
+    
+    const {user} = useSelector((state) => state.auth)
 
-   const images = useMemo(() => {
+    const [commentsPage, setCommentsPage] = useState(1);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+    const [loadedPostId, setLoadedPostId] = useState(null)
+    // Get comments data from Redux
+    const { commentByPostId, loading: isLoadingComments, pagination } = useSelector((state) => state.comment);
+
+    // Determine if there are more comments to load
+    const hasMoreComments = pagination?.hasNextPage || false;
+    
+    const [showComments, setShowComments] = useState(false);
+    
+    // In a real app, this data would come from your state management (e.g., Redux)
+    const [commentsList, setCommentsList] = useState(commentByPostId);
+    const currentPostId = 'post_abc'; // The ID of the post being viewed
+
+    
+    
+
+    const images = useMemo(() => {
         // This logic is correct, but it relies on postContent having a value.
         if (!postContent) return []; // Return empty array if postContent is null/undefined
         return Array.isArray(postContent) ? postContent : [postContent];
@@ -89,6 +160,8 @@ export function PostCard({
 
     useOutsideClick(mentionsRef, () => setShowMentions(false));
     useOutsideClick(likesRef, () => setShowLikes(false));
+
+    // useOutsideClick(commentButtonRef , () => setShowComments(false))
 
     useEffect(() => {
         function onKeyDown(event) {
@@ -171,6 +244,8 @@ export function PostCard({
             e.stopPropagation();
             e.preventDefault();
         }
+
+        setSlideDirection(-1)
         setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
     }, [images.length]);
 
@@ -179,6 +254,7 @@ export function PostCard({
             e.stopPropagation();
             e.preventDefault();
         }
+        setSlideDirection(1)
         setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     }, [images.length]);
 
@@ -233,6 +309,95 @@ export function PostCard({
         setShowMentions(false);
         setShowLikes(false);
         navigate(`/dashboard/profile/${username}`);
+    }
+
+
+    // Placeholder functions - This is what you'll replace with API calls
+    const handleSubmitComment = async (content, postId) => {
+        const tempId = `temp_${Date.now()}`;
+        const optimisticComment = {
+            _id: tempId,
+            post: postId,
+            user: {
+                _id: user._id,
+                username: user.username,
+                profilePicture: user.profilePicture
+            },
+            content: content,
+            likes: 0,
+            likedBy: [],
+            replies: [],
+            createdAt: new Date().toISOString(),
+            isEdited: false,
+            isDeleted: false,
+        };
+        
+        // Add the optimistic comment
+        dispatch(addOptimisticComment(optimisticComment));
+        
+        try {
+            // When you have the API ready:
+            const response = await dispatch(createComment({ postId,content})).unwrap();
+            console.log(response.data);
+            
+            // Replace the optimistic comment with the real one
+            // dispatch(replaceOptimisticComment({ 
+            //     tempId, 
+            //     realComment: response.data?.content // Adjust based on your API response
+            // }));
+            
+        } catch (error) {
+            console.error('Failed to create comment:', error);
+            // Remove the optimistic comment on error
+            dispatch(removeOptimisticComment(tempId));
+            // Show error notification
+        }
+    };
+
+    const handleLikeComment = (commentId) => {
+        console.log(`Liking/Unliking comment ID: ${commentId}`);
+        // Here you would dispatch an action:
+        // dispatch(toggleLikeComment(commentId));
+    };
+
+    const handleReply = (comment) => {
+        console.log(`Replying to comment by ${comment.user.username}: "${comment.content}"`);
+        // Here you might set state to show a nested reply input
+    }
+
+    const handleCommentButtonClick = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setModalOrigin({
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+        });
+        setShowComments(true);
+    }
+
+    // Also update handleLoadMoreComments to ensure we're loading for the right post
+    const handleLoadMoreComments = useCallback(async () => {
+        console.log('handling more comments');
+        
+        // Add check to ensure we're loading more for the current post
+        if (isLoadingComments || !hasMoreComments || loadedPostId !== postId) return;
+        
+        try {
+            const nextPage = commentsPage + 1;
+            await dispatch(getCommentsByPostId({ 
+                postId, 
+                page: nextPage 
+            })).unwrap();
+            
+            setCommentsPage(nextPage);
+        } catch (error) {
+            console.error('Failed to load more comments:', error);
+        }
+    }, [commentsPage, isLoadingComments, hasMoreComments, dispatch, postId, loadedPostId])
+
+
+    const handleCloseComments = () => {
+        setShowComments(false);
+        // Note: Don't reset comments here to avoid reloading when reopening
     }
 
 
@@ -415,15 +580,23 @@ export function PostCard({
                                     </motion.span>
                                 </div>
 
-                                <motion.button 
-                                    className="flex items-center hover:text-neutral-800 dark:hover:text-neutral-100 transition-colors duration-150"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <IconMessageCircle className="w-6 h-6" />
-                                    <span className="ml-2 font-medium text-sm">{postComments}</span>
-                                </motion.button>
-                                
+                                    <motion.button 
+                                        ref={commentButtonRef}
+                                        className="flex items-center hover:text-neutral-800 dark:hover:text-neutral-100 transition-colors duration-150"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={handleCommentButtonClick}
+                                    >
+                                        <IconMessageCircle className="w-6 h-6" />
+                                        <span className="ml-2 font-medium text-sm">{postComments}</span>
+                                    </motion.button>
+                                    <CommentsModal
+                                        show={showComments}
+                                        onClose={() => setShowComments(false)}
+                                        postId={postId}
+                                        modalOrigin={modalOrigin}
+                                    />
+                    
                                 <motion.button 
                                     className="flex items-center hover:text-neutral-800 dark:hover:text-neutral-100 transition-colors duration-150"
                                     whileHover={{ scale: 1.1 }}
@@ -561,9 +734,12 @@ export function PostCard({
                                                     whileHover={{ scale: 1.1 }}
                                                 />
                                                 <div>
-                                                    <p className="font-medium dark:text-white">{mention.username}</p>
+                                                    <p className="font-medium dark:text-white">{mention.fullname}</p>
                                                     <p className="text-sm text-gray-500 dark:text-gray-400">@{mention.handle || mention.username}</p>
                                                 </div>
+                                                    <div className="flex-shrink-0"> {/* --- CHANGE 6: Remove the w-24, let the button define the width --- */}
+                                                        <FollowButton targetUser={mention} />
+                                                    </div>
                                             </motion.div>
                                         ))}
                                     </motion.div>
@@ -646,7 +822,7 @@ export function PostCard({
                                             likedByUsers.map((user, index) => (
                                                 <motion.div 
                                                     key={index} 
-                                                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                                                    className="flex items-center justify-between space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                                     initial={{ opacity: 0, x: -20 }}
                                                     animate={{ opacity: 1, x: 0 }}
                                                     transition={{ delay: 0.05 * index }}
@@ -656,30 +832,17 @@ export function PostCard({
                                                     <motion.img
                                                         src={user.profilePicture || '/default-avatar.png'}
                                                         alt={user.username}
-                                                        className="w-10 h-10 rounded-full object-cover"
+                                                        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                                                         whileHover={{ scale: 1.1 }}
                                                     />
-                                                    <div className="flex-1">
-                                                        <p className="font-medium dark:text-white">{user.username}</p>
-                                                        <p className="text-sm text-gray-500 dark:text-gray-400">@{user.handle || user.username}</p>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium dark:text-white truncate">{user.fullname}</p>
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400 ">@{user.handle || user.username}</p>
                                                     </div>
-                                                    {user.isFollowing !== undefined && (
-                                                        <motion.button
-                                                            className={`px-3 py-1 text-sm rounded-full font-medium ${
-                                                                user.isFollowing
-                                                                    ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                                                                    : 'bg-blue-500 text-white'
-                                                            }`}
-                                                            whileHover={{ scale: 1.05 }}
-                                                            whileTap={{ scale: 0.95 }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                // Add follow/unfollow logic here
-                                                            }}
-                                                        >
-                                                            {user.isFollowing ? 'Following' : 'Follow'}
-                                                        </motion.button>
-                                                    )}
+                                                    <div className="flex-shrink-0"> {/* --- CHANGE 6: Remove the w-24, let the button define the width --- */}
+                                                        <FollowButton targetUser={user} />
+                                                    </div>
+        
                                                 </motion.div>
                                             ))
                                         ) : (

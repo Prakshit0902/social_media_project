@@ -11,12 +11,17 @@ import { Post } from '../models/post.model.js'
 const optionsRefresh = {
     httpOnly: true,
     secure: false,
+    sameSite: 'lax',  // Add this
+    path: '/',        // Add this
     maxAge: 10 * 24 * 60 * 60 * 1000
 }
+
 const options = {
     httpOnly: true,
     secure: false,
-    maxAge: 1 * 24 * 60 * 60 * 1000
+    sameSite: 'lax',  // Add this
+    path: '/',        // Add this
+    maxAge: 1 * 24 * 60 * 60 * 1000 
 }
 
 
@@ -28,6 +33,9 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
+
+        // console.log(refreshToken,'ref',accessToken,'acc');
+        
 
         return {accessToken, refreshToken}
 
@@ -196,9 +204,10 @@ const logoutUser = asyncHandler(async (req,res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     console.log('hitting the refresh access token');
-    console.log(req.cookies)
     
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+    // console.log(incomingRefreshToken,'incomingRefreshToken');
+    
 
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
@@ -210,23 +219,20 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             process.env.REFRESH_TOKEN_SECRET
         )
 
-        const user = await User.findById(decodedToken?._id)
-       console.log(user);
-       
+        const user = await User.findById(decodedToken?._id).select("-password")
         
         if (!user) {
-            
             throw new ApiError(401, "Invalid refresh token")
         }
         
-        console.log(user.refreshToken)
-        if (incomingRefreshToken !== user?.refreshToken) {
-            
+        if (incomingRefreshToken?.toString() !== user?.refreshToken?.toString()) {            
             throw new ApiError(401, "Refresh token is expired or used")
-            
         }
 
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+        const {accessToken, refreshToken: newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+        
+        // Get updated user data (without sensitive fields)
+        const updatedUser = await User.findById(user._id).select("-password -refreshToken")
     
         return res
         .status(200)
@@ -235,14 +241,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200, 
-                {accessToken, refreshToken: newRefreshToken},
-                "Access token refreshed"
+                updatedUser, // Return user data instead of tokens
+                "Access token refreshed and user data fetched"
             )
         )
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid refresh token")
     }
-
 })
 
 const changePassword = asyncHandler(async (req,res) => {
@@ -737,12 +742,21 @@ const exploreSection = asyncHandler(async (req, res) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
     return res.status(200).json(new ApiResponse(200, posts, 'explore section'))
 })
+
+
 const postFeeds = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const posts = await Post.aggregate([
+            {
+            $match: {
+                'media.type': { $ne: 'video' }, // Exclude posts with any video
+                media: { $exists: true, $ne: [] } // Ensure media exists and is not empty
+            }
+        },
+        { $sort: { createdAt: -1 } },
         { $skip: skip },
         { $limit: limit },
         {
@@ -763,7 +777,7 @@ const postFeeds = asyncHandler(async (req, res) => {
             foreignField: '_id',
             as: 'mentions',
             pipeline: [
-            { $project: { _id: 1, username: 1,profilePicture : 1 } } // Include only _id and username
+            { $project: { _id: 1, username: 1,profilePicture : 1,fullname : 1,followers : 1} } // Include only _id and username
             ]
         }
         },
@@ -774,7 +788,7 @@ const postFeeds = asyncHandler(async (req, res) => {
             foreignField: '_id',
             as: 'likedByUsers',
             pipeline: [
-            { $project: { _id: 1, username: 1,profilePicture : 1 } } // Include only _id and username
+            { $project: { _id: 1, username: 1,profilePicture : 1,fullname : 1 , followers : 1} } // Include only _id and username
             ]
         }
         },

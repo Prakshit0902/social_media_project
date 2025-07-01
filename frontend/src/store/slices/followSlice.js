@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+// import api from "api";
+import { axiosPrivate } from "../../utils/api";
 
 const initialState = {
     loading : false,
@@ -14,7 +15,7 @@ export const followUser = createAsyncThunk(
     'user/follow',
     async(id , {rejectWithValue}) => {
         try {
-            const response = await axios.post('/api/v1/user/follow-user',{followUserId : id},{withCredentials : true})
+            const response = await axiosPrivate.post('/api/v1/user/follow-user',{followUserId : id},{withCredentials : true})
             return response.data
         } catch (error) {
             const message = error?.response?.data?.message || error?.message || 'Failed to toggle like';
@@ -27,7 +28,7 @@ export const unFollowUser = createAsyncThunk(
     'user/unfollow',
     async(id , {rejectWithValue}) => {
         try {
-            const response = await axios.post('/api/v1/user/unfollow-user',{unFollowUserId : id},{withCredentials : true})
+            const response = await axiosPrivate.post('/api/v1/user/unfollow-user',{unFollowUserId : id},{withCredentials : true})
             return response.data
         } catch (error) {
             const message = error?.response?.data?.message || error?.message || 'Failed to toggle like';
@@ -40,7 +41,7 @@ export const approveFollowRequest = createAsyncThunk(
     'user/approve-follow',
     async(id , {rejectWithValue}) => {
         try {
-            const response = await axios.post('/api/v1/user/approve-follow-request',{approveUserId : id},{withCredentials : true})
+            const response = await axiosPrivate.post('/api/v1/user/approve-follow-request',{approveUserId : id},{withCredentials : true})
             return response.data
         } catch (error) {
             const message = error?.response?.data?.message || error?.message || 'Failed to approve user request';
@@ -53,7 +54,7 @@ export const rejectFollowRequest = createAsyncThunk(
     'user/reject-follow',
     async(id , {rejectWithValue}) => {
         try {
-            const response = await axios.post('/api/v1/user/reject-follow-request',{rejectUserId : id},{withCredentials : true})
+            const response = await axiosPrivate.post('/api/v1/user/reject-follow-request',{rejectUserId : id},{withCredentials : true})
             return response.data
         } catch (error) {
             const message = error?.response?.data?.message || error?.message || 'Failed to reject user request';

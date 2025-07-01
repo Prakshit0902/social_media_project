@@ -1,6 +1,6 @@
 import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
 import { toggleLikePost } from "./postSlice";
+import  { axiosPrivate } from "../../utils/api";
 
 const initialState = {
     explorePosts: [],
@@ -17,13 +17,13 @@ const initialState = {
 export const getUserPostFeed = createAsyncThunk(
     'user/get-post-feed',
     async (page, { rejectWithValue }) => {
-        const host = window.location.hostname;
-        const backendPort = 3000; // Your backend port
-        const baseURL = host === 'localhost' 
-        ? `http://localhost:${backendPort}`
-        : `http://${host}:${backendPort}`
+        // const host = window.location.hostname;
+        // const backendPort = 3000; // Your backend port
+        // const baseURL = host === 'localhost' 
+        // ? `http://localhost:${backendPort}`
+        // : `http://${host}:${backendPort}`
         try {
-            const response = await axios.get(`${baseURL}/api/v1/user/post-feed?page=${page}&limit=10`, { withCredentials: true });
+            const response = await axiosPrivate.get(`/api/v1/user/post-feed?page=${page}&limit=10`, { withCredentials: true });
             return { data: response.data.data, page };
         } catch (error) {
             const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server';
@@ -37,7 +37,7 @@ export const getUserExploreFeed = createAsyncThunk(
     'user/explore',
     async (page, { rejectWithValue }) => {
         try {
-            const response = await axios.get(`/api/v1/user/explore?page=${page}&limit=20`, { withCredentials: true });
+            const response = await axiosPrivate.get(`/api/v1/user/explore?page=${page}&limit=20`, { withCredentials: true });
             return { data: response.data.data, page };
         } catch (error) {
             const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server';

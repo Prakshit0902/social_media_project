@@ -305,7 +305,7 @@ const UserProfileContainer = () => {
                     </div>
                     <div className="w-28 flex-shrink-0">
                       {/* --- FIX: Use the reusable FollowButton in the modal --- */}
-                      {/* <FollowButton targetUser={person} /> */}
+                      <FollowButton targetUser={person} />
                     </div>
                   </motion.div>
                 ))}

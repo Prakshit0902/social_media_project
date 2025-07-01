@@ -1,6 +1,7 @@
-    import { createAsyncThunk, createSlice} from "@reduxjs/toolkit";
-    import axios from "axios";
-    import { approveFollowRequest, followUser, rejectFollowRequest, unFollowUser } from "./followSlice";
+import { createAsyncThunk, createSlice} from "@reduxjs/toolkit";
+// import api from "api";
+import { approveFollowRequest, followUser, rejectFollowRequest, unFollowUser } from "./followSlice";
+import  { axiosPrivate } from "../../utils/api";
 
     const initialState = {
         profilesById: {},
@@ -14,7 +15,7 @@
         'user/get-user-profile',
         async (ids,{rejectWithValue}) => {
             try {
-                const response = await axios.post('/api/v1/user/profiles', {ids})
+                const response = await axiosPrivate.post('/api/v1/user/profiles', {ids})
                 // console.log(response.data.data)
                 
                 return response.data.data
@@ -32,7 +33,7 @@
         async (identifier , {rejectWithValue}) => {
             try {
                 console.log('trying to get response');
-                const response = await axios.get(`/api/v1/user/profile/${identifier}`)
+                const response = await axiosPrivate.get(`/api/v1/user/profile/${identifier}`)
                 // console.log(response);
                 
                 return response.data.data
@@ -48,7 +49,7 @@
         'user/update',
         async (formData,{rejectWithValue}) => {
             try {
-                const response = await axios.patch('/api/v1/user/update-account-details',formData,{withCredentials : true})
+                const response = await axiosPrivate.patch('/api/v1/user/update-account-details',formData,{withCredentials : true})
                 return response.data
             } catch (error) {
                 const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
@@ -62,7 +63,7 @@
         'user/update-bio',
         async(formData,{rejectWithValue}) => {
             try {
-                const response = await axios.patch('/api/v1/user/update-bio',formData,{withCredentials : true})
+                const response = await axiosPrivate.patch('/api/v1/user/update-bio',formData,{withCredentials : true})
                 return response.data
             } catch (error) {
                 const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
@@ -77,7 +78,7 @@
         async(isPrivate,{rejectWithValue}) => {
             try {
             
-                const response = await axios.post('/api/v1/user/profile-privacy',{isPrivate},{withCredentials : true})
+                const response = await axiosPrivate.post('/api/v1/user/profile-privacy',{isPrivate},{withCredentials : true})
                 console.log(response.data);
                 
                 return response.data

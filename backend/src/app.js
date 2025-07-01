@@ -22,6 +22,13 @@ app.use(cors({
   credentials: true,               
 }))
 
+// app.use((req, res, next) => {
+//   console.log(`${req.method} ${req.path}`, {
+//     cookies: req.cookies,
+//     origin: req.headers.origin
+//   });
+//   next();
+// })
 
 app.use('/api',routes)
 
