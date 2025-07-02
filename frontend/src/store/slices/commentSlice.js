@@ -36,6 +36,7 @@ export const getCommentsByPostId = createAsyncThunk(
         }
     }
 )
+
 export const createComment = createAsyncThunk(
     'comment/create-comment',
     async({postId,content},{rejectWithValue}) => {
@@ -99,6 +100,23 @@ export const replyToComment = createAsyncThunk(
     }
 )
 
+export const likeComment = createAsyncThunk(
+    'comment/like-comment',
+    async({ commentId }, { rejectWithValue }) => {
+        try {
+            const response = await axiosPrivate.post(
+                '/api/v1/comment/like-comment',
+                { commentId },
+                { withCredentials: true }
+            );
+            return response.data.data; // Should return the updated comment
+        } catch (error) {
+            const message = error?.response?.data?.message || error?.message || 'Failed to like comment';
+            return rejectWithValue(message);
+        }
+    }
+)
+
 const commentSlice = createSlice({
     name: 'comments',
     initialState: initialState,
@@ -152,7 +170,7 @@ const commentSlice = createSlice({
             // Update in replies
             state.commentByPostId.forEach(comment => {
                 if (comment.replies) {
-                    comment.replies = comment.replies.map(reply =>
+                    comment.replies = comment.replies?.map(reply =>
                         reply._id === updatedComment._id ? updatedComment : reply
                     );
                 }
@@ -166,8 +184,6 @@ const commentSlice = createSlice({
             })
             // In your Redux slice extraReducers:
             .addCase(getCommentsByPostId.fulfilled, (state, action) => {
-    
-                
                 state.loading = false;
                 
                 const { comments, pagination, page } = action.payload;
@@ -231,10 +247,38 @@ const commentSlice = createSlice({
                         };
                     }
                     return comment;
-            })             
-    })
-}})
+                }); // <-- Added missing closing parenthesis and semicolon
+            })
+            .addCase(likeComment.fulfilled, (state, action) => {
+                const updatedComment = action.payload;
+                
+                // Update in parent comments
+                const parentIndex = state.commentByPostId.findIndex(
+                    comment => comment._id === updatedComment._id
+                );
+                if (parentIndex !== -1) {
+                    state.commentByPostId[parentIndex] = updatedComment;
+                }
+                
+                // Update in replies
+                state.commentByPostId.forEach((comment, commentIndex) => {
+                    if (comment.replies && comment.replies.length > 0) {
+                        const replyIndex = comment.replies.findIndex(
+                            reply => reply._id === updatedComment._id
+                        );
+                        if (replyIndex !== -1) {
+                            state.commentByPostId[commentIndex] = {
+                                ...comment,
+                                replies: comment.replies.map((reply, idx) =>
+                                    idx === replyIndex ? updatedComment : reply
+                                )
+                            };
+                        }
+                    }
+                });
+            });          
+    }
+}); 
 
-
-export const { clearComments,addOptimisticComment,removeOptimisticComment,replaceOptimisticComment,updateCommentInPlace } = commentSlice.actions;
+export const { clearComments, addOptimisticComment, removeOptimisticComment, replaceOptimisticComment, updateCommentInPlace } = commentSlice.actions;
 export default commentSlice.reducer;

@@ -6,6 +6,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 // Layouts
 import AuthLayout from './layouts/AuthLayout';
 import { DashBoardLayout } from './layouts/DashBoardLayout';
+import { SettingsLayout } from './layouts/SettingsLayout';
+import { ChatLayout } from './layouts/ChatLayout'; // Import the new ChatLayout
 
 // Components
 import { LoginForm } from './components/LandingPage/LoginForm';
@@ -17,8 +19,6 @@ import { RegisterBasicDetails } from './components/LandingPage/RegisterBasicDeta
 import { LoadingScreen } from './components/LoadingScreen/LoadingScreen';
 import { EditProfile } from './components/SettingsComponent/EditProfile';
 import { Settings } from './components/SettingsComponent/Settings';
-import { SettingsLayout } from './layouts/SettingsLayout';
-
 
 function App() {
   const dispatch = useDispatch();
@@ -35,26 +35,21 @@ function App() {
   useEffect(() => {
     if (!appInitialized.current) {
       appInitialized.current = true;
-      console.log("Initializing user session...");
       dispatch(initializeAuth());
     }
   }, [dispatch]);
 
-  // Show loading screen during initial auth check
   if (!authChecked) {
     return <LoadingScreen message="Initializing Session..." />;
   }
 
-  // Show loading screen during any transition or loading state
   if (isTransitioning || (loading && isAuthenticated)) {
     return <LoadingScreen message="Updating Profile..." />;
   }
 
-  // Derive profile completion status
   const isProfileComplete = !!user?.username;
 
-  // Additional check: if authenticated but still loading, show loading screen
-  if (isAuthenticated && loading) {
+  if (isAuthenticated && loading && !isTransitioning) {
     return <LoadingScreen message="Loading..." />;
   }
 
@@ -114,12 +109,29 @@ function App() {
           <Route path="profile/:identifier" element={<UserProfileContainer />} />
           
           <Route path="settings" element={<SettingsLayout />}>
-          {/* Redirects /dashboard/settings to /dashboard/settings/profile by default */}
-          <Route index element={<Navigate to="profile" replace />} />
-          <Route path="profile" element={<EditProfile />} />
-          <Route path="account" element={<Settings />} />
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<EditProfile />} />
+            <Route path="account" element={<Settings />} />
+          </Route>
         </Route>
-        {/* --- END OF NEW SETTINGS ROUTE GROUP --- */}
+
+        {/* --- ROUTE GROUP 4: NEW CHAT ROUTE --- */}
+        <Route
+          path="/dashboard/messages"
+          element={
+            isAuthenticated ? (
+              isProfileComplete ? (
+                <ChatLayout />
+              ) : (
+                <Navigate to="/complete-profile" replace />
+              )
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        >
+          {/* This nested route makes /dashboard/messages/:chatId work */}
+          <Route path=":chatId" element={<></>} />
         </Route>
         
         {/* CATCH-ALL ROUTE */}
@@ -127,11 +139,7 @@ function App() {
           path="*" 
           element={
             <Navigate 
-              to={
-                isAuthenticated 
-                  ? (isProfileComplete ? "/dashboard" : "/complete-profile") 
-                  : "/"
-              } 
+              to={isAuthenticated ? (isProfileComplete ? "/dashboard" : "/complete-profile") : "/"} 
               replace 
             />
           } 

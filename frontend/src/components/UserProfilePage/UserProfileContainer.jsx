@@ -24,6 +24,7 @@ import { clearUserProfile, getUserProfile } from '../../store/slices/userSlice';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { approveFollowRequest, rejectFollowRequest } from '../../store/slices/followSlice';
 import FollowButton from './FollowButton';
+import { createOrGetPrivateChat } from '../../store/slices/chatSlice';
  // Make sure this path is correct
 
 // Helper for formatting large numbers
@@ -106,7 +107,28 @@ const UserProfileContainer = () => {
     setProcessingRequestId(requesterId);
     await dispatch(rejectFollowRequest(requesterId)).unwrap().finally(() => setProcessingRequestId(null));
   };
-  
+
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+
+  // Add this handler function
+  const handleMessageClick = async () => {
+      if (isCreatingChat) return; // Prevent multiple clicks
+      
+      setIsCreatingChat(true);
+      try {
+          // Create or get existing chat with this user
+          const result = await dispatch(createOrGetPrivateChat(userData?._id)).unwrap();
+          
+          // Navigate to the chat
+          navigate(`/dashboard/messages/${result._id}`);
+      } catch (error) {
+          console.error('Failed to create/open chat:', error);
+          // Optionally show an error toast if you have react-hot-toast installed
+          // toast.error('Failed to open chat');
+      } finally {
+          setIsCreatingChat(false);
+      }
+  }
   // --- RENDER LOGIC ---
   if (profileLoading) return <div className="text-center text-white py-20">Loading Profile...</div>;
   if (error) return <div className="text-center text-red-500 py-20">Error: {error}</div>;
@@ -188,7 +210,16 @@ const UserProfileContainer = () => {
                   <div className="flex gap-2 w-full">
                       {/* --- FIX: Use the new, clean FollowButton component --- */}
                       <FollowButton targetUser={userData} />
-                    <motion.button whileTap={{ scale: 0.95 }} className="w-full py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white">Message</motion.button>
+                      <motion.button 
+                          onClick={handleMessageClick} 
+                          whileTap={{ scale: 0.95 }}
+                          disabled={isCreatingChat}
+                          className={`w-full py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white 
+                              ${isCreatingChat ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                          {isCreatingChat ? 'Opening...' : 'Message'}
+                      </motion.button>
+
                   </div>
                 ) : (
                   <button onClick={() => setShowFollowRequestsModal(true)} disabled={!userData?.followRequestsReceived?.length} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">

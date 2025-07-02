@@ -10,7 +10,9 @@ import {
     IconEdit,
     IconTrash,
     IconCheck,
-    IconArrowBack
+    IconArrowBack,
+    IconChevronUp,
+    IconChevronDown
 } from '@tabler/icons-react';
 import { formatDistanceToNow } from 'date-fns';
 import useInfiniteScroll from '../../hooks/use-infinite-scroll';
@@ -18,7 +20,7 @@ import { useOutsideClick } from '../../hooks/use-outside-click';
 import {
     getCommentsByPostId,
     createComment,
-    // likeComment,
+    likeComment,
     editComment,
     deleteComment,
     replyToComment,
@@ -63,6 +65,8 @@ const CommentsModal = ({
     const modalRef = useRef(null);
     const replyInputRef = useRef(null);
     const editInputRef = useRef(null);
+
+    const [expandedReplies, setExpandedReplies] = useState(new Set());
 
     // Use outside click hook
     useOutsideClick(modalRef, () => {
@@ -203,42 +207,42 @@ const CommentsModal = ({
         }
     }
     // Edit submission handler
-const handleEditSubmit = async (commentId) => {
-        if (!editContent.trim()) return;
-        
-        // Find the original comment
-        const originalComment = comments.find(c => c._id === commentId);
-        if (!originalComment) return;
-        
-        // Create optimistic update
-        const optimisticUpdate = {
-            ...originalComment,
-            content: editContent,
-            isEdited: true,
-            editedAt: new Date().toISOString()
-        };
-        
-        // Update immediately
-        dispatch(updateCommentInPlace(optimisticUpdate));
-        setEditingComment(null);
-        setEditContent('');
-        
-        try {
-            await dispatch(editComment({
-                commentId,
-                content: editContent
-            })).unwrap();
-        } catch (error) {
-            console.error('Failed to edit comment:', error);
-            // Revert to original
-            dispatch(updateCommentInPlace(originalComment));
-            // Re-open edit mode
-            setEditingComment(commentId);
-            setEditContent(originalComment.content);
+    const handleEditSubmit = async (commentId) => {
+            if (!editContent.trim()) return;
             
-            // toast.error('Failed to edit comment. Please try again.');
-        }
-    };
+            // Find the original comment
+            const originalComment = comments.find(c => c._id === commentId);
+            if (!originalComment) return;
+            
+            // Create optimistic update
+            const optimisticUpdate = {
+                ...originalComment,
+                content: editContent,
+                isEdited: true,
+                editedAt: new Date().toISOString()
+            };
+            
+            // Update immediately
+            dispatch(updateCommentInPlace(optimisticUpdate));
+            setEditingComment(null);
+            setEditContent('');
+            
+            try {
+                await dispatch(editComment({
+                    commentId,
+                    content: editContent
+                })).unwrap();
+            } catch (error) {
+                console.error('Failed to edit comment:', error);
+                // Revert to original
+                dispatch(updateCommentInPlace(originalComment));
+                // Re-open edit mode
+                setEditingComment(commentId);
+                setEditContent(originalComment.content);
+                
+                // toast.error('Failed to edit comment. Please try again.');
+            }
+        };
 
     // Enhanced like with optimistic update
     const handleLikeComment = async (commentId) => {
@@ -299,6 +303,18 @@ const handleEditSubmit = async (commentId) => {
         setNewComment('');
     };
 
+    const toggleReplies = (commentId) => {
+        setExpandedReplies(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(commentId)) {
+                newSet.delete(commentId);
+            } else {
+                newSet.add(commentId);
+            }
+            return newSet;
+        });
+    };
+
     const renderComment = (comment, index, isReply = false) => {
         if (!comment || !comment._id) return null;
 
@@ -307,6 +323,10 @@ const handleEditSubmit = async (commentId) => {
         const isEditing = editingComment === comment._id;
         const isDeleting = deleteConfirm === comment._id;
         const isOptimistic = comment.isOptimistic
+
+        const hasReplies = comment.replies && comment.replies.length > 0;
+        const repliesExpanded = expandedReplies.has(comment._id);
+
 
         return (
             <motion.div
@@ -447,19 +467,38 @@ const handleEditSubmit = async (commentId) => {
                                             {comment.likes > 0 && <span>{comment.likes}</span>}
                                         </motion.button>
                                         {!isReply && (
-                                            <motion.button
-                                                onClick={() => startReply(comment)}
-                                                className="flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                            >
-                                                <IconMessageCircle2 size={16} className="mr-1" />
-                                                Reply
-                                                                                             {comment.replies && comment.replies.length > 0 && (
-                                                    <span className="ml-1">({comment.replies.length})</span>
-                                                )}
-                                            </motion.button>
-                                        )}
+                                                <>
+                                                    <motion.button
+                                                        onClick={() => startReply(comment)}
+                                                        className="flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+                                                        whileHover={{ scale: 1.1 }}
+                                                        whileTap={{ scale: 0.9 }}
+                                                    >
+                                                        <IconMessageCircle2 size={16} className="mr-1" />
+                                                        Reply
+                                                    </motion.button>
+                                                    
+                                                    {/* Add this new button for toggling replies */}
+                                                    {hasReplies && (
+                                                        <motion.button
+                                                            onClick={() => toggleReplies(comment._id)}
+                                                            className="flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+                                                            whileHover={{ scale: 1.05 }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                        >
+                                                            {repliesExpanded ? (
+                                                                <IconChevronUp size={16} className="mr-1" />
+                                                            ) : (
+                                                                <IconChevronDown size={16} className="mr-1" />
+                                                            )}
+                                                            <span>
+                                                                {repliesExpanded ? 'Hide' : 'View'} {comment.replies.length} 
+                                                                {comment.replies.length === 1 ? ' reply' : ' replies'}
+                                                            </span>
+                                                        </motion.button>
+                                                    )}
+                                                </>
+                                            )}
                                     </div>
                                 </>
                             )}
@@ -468,13 +507,21 @@ const handleEditSubmit = async (commentId) => {
                 )}
 
                 {/* Render replies */}
-                {comment.replies && comment.replies.length > 0 && !comment.isDeleted && (
-                    <div className="mt-3">
-                        {comment.replies.map((reply, replyIndex) => 
-                            renderComment(reply, replyIndex, true)
+                <AnimatePresence>
+                        {hasReplies && repliesExpanded && !comment.isDeleted && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="mt-3 overflow-hidden"
+                            >
+                                {comment.replies.map((reply, replyIndex) => 
+                                    renderComment(reply, replyIndex, true)
+                                )}
+                            </motion.div>
                         )}
-                    </div>
-                )}
+                    </AnimatePresence>
             </motion.div>
         );
     };

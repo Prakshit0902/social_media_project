@@ -80,7 +80,9 @@ export function NavBar() {
       icon: (
         <IconMessageCircle className="h-full w-full" />
       ),
-      href: "#",
+      onClick : () => {
+        navigate('/dashboard/messages')
+      }
     },
     {
       title: "Create",

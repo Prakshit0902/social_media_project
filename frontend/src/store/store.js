@@ -7,6 +7,7 @@ import feedReducer from './slices/feedSlice.js';
 import postReducer from './slices/postSlice.js';
 import followReducer from './slices/followSlice.js';
 import commentReducer from './slices/commentSlice.js';
+import chatReducer from './slices/chatSlice.js';
 
 // Configuration for redux-persist
 const persistConfig = {
@@ -14,7 +15,7 @@ const persistConfig = {
     storage, // Storage engine (localStorage by default)
     // Optionally, specify which reducers to persist if you don't want all state persisted
     // whitelist: ['post', 'auth'], // Only persist these reducers
-    blacklist: ['feed','user'], // Exclude these reducers from persisting
+    blacklist: ['feed','user','chat'], // Exclude these reducers from persisting
 };
 
 // Combine all reducers into a root reducer
@@ -24,7 +25,8 @@ const rootReducer = combineReducers({
     feed: feedReducer,
     post: postReducer,
     follow : followReducer,
-    comment : commentReducer
+    comment : commentReducer,
+    chat : chatReducer
 });
 
 // Wrap the root reducer with persistReducer to enable persistence

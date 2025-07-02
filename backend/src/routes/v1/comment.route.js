@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyJWT } from "../../middlewares/auth.middleware.js";
-import { createComment, deleteComment, editComment, getCommentsByPostId, replyToComment } from "../../controller/comment.controller.js";
+import { createComment, deleteComment, editComment, getCommentsByPostId, likeComment, replyToComment } from "../../controller/comment.controller.js";
 
 
 
@@ -11,5 +11,6 @@ router.route('/create-comment').post(verifyJWT,createComment)
 router.route('/:id').patch(verifyJWT,editComment)
 router.route('/:id').delete(verifyJWT,deleteComment)
 router.route('/reply').post(verifyJWT,replyToComment)
+router.route('/like-comment').post(verifyJWT,likeComment)
 
 export default router

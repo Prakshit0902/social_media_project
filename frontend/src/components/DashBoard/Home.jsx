@@ -26,12 +26,16 @@ function Home() {
 
     // Only fetch if authenticated
     useEffect(() => {
-        if (!initialLoadDone.current && isAuthenticated) {
-            initialLoadDone.current = true;
-            dispatch(resetFeedPage());
+        // This condition ensures the fetch only happens ONCE on the initial load:
+        // 1. User must be logged in.
+        // 2. There should be no posts currently in the state.
+        // 3. A fetch should not already be in progress.
+        if (isAuthenticated && feedPosts.length === 0 && !feedLoading) {
+            // It's safe to reset and fetch here.
+            dispatch(resetFeedPage()); 
             dispatch(getUserPostFeed(1));
         }
-    }, [dispatch, isAuthenticated]);
+    }, [dispatch, isAuthenticated, feedPosts.length, feedLoading]);
 
     // Fetch user profiles when posts are loaded
     // useEffect(() => {

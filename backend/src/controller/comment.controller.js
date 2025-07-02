@@ -4,15 +4,16 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 
+// In comment.controller.js - Update getCommentsByPostId
 const getCommentsByPostId = asyncHandler(async (req, res) => {
     const { postId } = req.body;    
     const { page = 1, limit = 10 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // First, get only parent comments (comments without parentComment)
+    // Get only parent comments
     const parentComments = await Comment.find({ 
         post: postId,
-        parentComment: null, // This is the key - only get top-level comments
+        parentComment: null, // Only parent comments
         isDeleted: false 
     })
     .populate('user', 'username profilePicture fullName')
@@ -20,28 +21,24 @@ const getCommentsByPostId = asyncHandler(async (req, res) => {
     .limit(parseInt(limit))
     .sort({ createdAt: -1 });
 
-    // Now populate replies for each parent comment
-    for (let i = 0; i < parentComments.length; i++) {
-        if (parentComments[i].replies && parentComments[i].replies.length > 0) {
-            // Populate the replies array with full comment objects
-            parentComments[i].replies = await Comment.find({
-                _id: { $in: parentComments[i].replies },
-                isDeleted: false
+    // Populate replies for each parent comment
+    for (let comment of parentComments) {
+        if (comment.replies && comment.replies.length > 0) {
+            const populatedReplies = await Comment.find({
+                _id: { $in: comment.replies }
             })
             .populate('user', 'username profilePicture fullName')
             .sort({ createdAt: 1 });
+            
+            comment.replies = populatedReplies;
         }
     }
 
-    // Count only parent comments for accurate pagination
     const totalComments = await Comment.countDocuments({ 
         post: postId,
-        parentComment: null, // Count only parent comments
+        parentComment: null,
         isDeleted: false 
     });
-
-    console.log('Parent comments count:', parentComments.length);
-    console.log('Total parent comments:', totalComments);
 
     res.status(200).json(
         new ApiResponse(200, {
@@ -90,28 +87,27 @@ const createComment = asyncHandler(async (req,res) => {
     
 })
 
-const likeComment = asyncHandler(async (req,res) => {
-    const {id,parentCommentId} = req.body
-    if (!id){
-        throw new ApiError(404,'No such comment exists')
+const likeComment = asyncHandler(async (req, res) => {
+    const { commentId } = req.body;
+    
+    if (!commentId) {
+        throw new ApiError(400, 'Comment ID is required');
     }
 
-    const comment = await Comment.findByIdAndUpdate(id,
-        {
-            $push : {
-                likedBy : req.user._id
-            },
-            $set : {
-                parentComment : parentCommentId
-            }
-        },
-        {
-            new : true
-        }
-    )
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+        throw new ApiError(404, 'Comment not found');
+    }
+
+    // Use the toggleLike method from your schema
+    await comment.toggleLike(req.user._id);
+    
+    // Populate user info for response
+    await comment.populate('user', 'username profilePicture fullName');
+
     return res.status(200).json(
-        new ApiResponse(200,{},'Comment liked successfully')
-    )
+        new ApiResponse(200, comment, 'Comment like toggled successfully')
+    );
 })
 
 const editComment = asyncHandler(async (req, res) => {
