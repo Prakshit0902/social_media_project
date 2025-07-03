@@ -4,9 +4,12 @@ import { IconSearch, IconPlus } from '@tabler/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchUserChats } from '../../store/slices/chatSlice';
 import { formatDistanceToNow } from 'date-fns';
+import { NewChatModal } from './NewChatModal';
 
 const ChatListItem = ({ chat, onSelect, isActive }) => {
     const currentUser = useSelector(state => state.auth.user);
+
+    
     
     // Determine display info
     const isGroup = chat.chatType === 'group';
@@ -64,7 +67,8 @@ export const ChatList = ({ onSelectChat, activeChatId }) => {
     const { user } = useSelector((state) => state.auth);
     const { chats, loading } = useSelector((state) => state.chat);
     const [searchQuery, setSearchQuery] = useState('');
-    
+    const [showNewChatModal, setShowNewChatModal] = useState(false);
+
     useEffect(() => {
         if (user) {
             dispatch(fetchUserChats());
@@ -100,12 +104,18 @@ export const ChatList = ({ onSelectChat, activeChatId }) => {
             <div className="p-4 border-b border-white/10 flex-shrink-0">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold text-white">Messages</h2>
-                    <motion.button 
-                        whileTap={{ scale: 0.9 }} 
-                        className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                    >
-                        <IconPlus size={22} className="text-white/80"/>
-                    </motion.button>
+                        <motion.button 
+                            whileTap={{ scale: 0.9 }} 
+                            onClick={() => setShowNewChatModal(true)}
+                            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                        >
+                            <IconPlus size={22} className="text-white/80"/>
+                        </motion.button>
+
+                        <NewChatModal 
+                            isOpen={showNewChatModal} 
+                            onClose={() => setShowNewChatModal(false)} 
+                        />
                 </div>
                 <div className="relative">
                     <IconSearch className="absolute top-1/2 -translate-y-1/2 left-3 text-white/40" size={20} />

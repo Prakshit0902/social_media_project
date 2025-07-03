@@ -89,6 +89,17 @@ import  { axiosPrivate } from "../../utils/api";
             }
         }
     )
+    export const searchUsers = createAsyncThunk(
+    'user/searchUsers',
+        async (query, { rejectWithValue }) => {
+            try {
+                const response = await axiosPrivate.get(`/api/v1/user/search?q=${query}`);
+                return response.data.data;
+            } catch (error) {
+                return rejectWithValue(error.response?.data?.message || 'Search failed');
+            }
+        }
+    );
     const userSlice = createSlice({
         name : 'user',
         initialState : initialState,

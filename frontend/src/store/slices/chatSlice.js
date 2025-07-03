@@ -12,6 +12,96 @@ const initialState = {
     onlineUsers: []
 };
 
+export const createGroupChat = createAsyncThunk(
+    'chat/createGroup',
+    async ({ groupName, participantIds }, { rejectWithValue }) => {
+        try {
+            const response = await axiosPrivate.post('/api/v1/chat/group', { 
+                groupName, 
+                participantIds 
+            });
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to create group');
+        }
+    }
+);
+
+// Upload media
+export const uploadMedia = createAsyncThunk(
+    'chat/uploadMedia',
+    async ({ chatId, file, replyTo }, { rejectWithValue }) => {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('chatId', chatId);
+            if (replyTo) formData.append('replyTo', replyTo);
+
+            const response = await axiosPrivate.post('/api/v1/chat/message/media', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to upload media');
+        }
+    }
+);
+
+// Delete message
+export const deleteMessage = createAsyncThunk(
+    'chat/deleteMessage',
+    async ({ messageId, deleteForAll }, { rejectWithValue }) => {
+        try {
+            await axiosPrivate.delete(`/api/v1/chat/message/${messageId}`, {
+                data: { deleteForAll }
+            });
+            return { messageId, deleteForAll };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to delete message');
+        }
+    }
+);
+
+// Edit message
+export const editMessage = createAsyncThunk(
+    'chat/editMessage',
+    async ({ messageId, content }, { rejectWithValue }) => {
+        try {
+            const response = await axiosPrivate.patch(`/api/v1/chat/message/${messageId}`, {
+                content
+            });
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to edit message');
+        }
+    }
+);
+
+// Toggle mute
+export const toggleMuteChat = createAsyncThunk(
+    'chat/toggleMute',
+    async (chatId, { rejectWithValue }) => {
+        try {
+            const response = await axiosPrivate.patch(`/api/v1/chat/${chatId}/mute`);
+            return { chatId, isMuted: response.data.data.isMuted };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to toggle mute');
+        }
+    }
+);
+
+// Search messages
+export const searchMessages = createAsyncThunk(
+    'chat/searchMessages',
+    async ({ chatId, query }, { rejectWithValue }) => {
+        try {
+            const response = await axiosPrivate.get(`/api/v1/chat/${chatId}/search?query=${query}`);
+            return { chatId, results: response.data.data };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Search failed');
+        }
+    }
+);
 // Fetch user chats
 export const fetchUserChats = createAsyncThunk(
     'chat/fetchChats',
@@ -132,7 +222,44 @@ const chatSlice = createSlice({
         setUserOffline: (state, action) => {
             state.onlineUsers = state.onlineUsers.filter(id => id !== action.payload);
         },
-        resetChatState: () => initialState
+        resetChatState: () => initialState,
+        setReplyingTo: (state, action) => {
+            state.replyingTo = action.payload;
+        },
+        setEditingMessage: (state, action) => {
+            state.editingMessage = action.payload;
+        },
+        updateUploadProgress: (state, action) => {
+            const { tempId, progress } = action.payload;
+            if (state.uploadingFiles[tempId]) {
+                state.uploadingFiles[tempId].progress = progress;
+            }
+        },
+        addUploadingFile: (state, action) => {
+            const { tempId, file } = action.payload;
+            state.uploadingFiles[tempId] = { file, progress: 0 };
+        },
+        removeUploadingFile: (state, action) => {
+            delete state.uploadingFiles[action.payload];
+        },
+        updateMessageInState: (state, action) => {
+            const { chatId, messageId, updates } = action.payload;
+            if (state.messages[chatId]) {
+                const messageIndex = state.messages[chatId].findIndex(m => m._id === messageId);
+                if (messageIndex !== -1) {
+                    state.messages[chatId][messageIndex] = {
+                        ...state.messages[chatId][messageIndex],
+                        ...updates
+                    };
+                }
+            }
+        },
+        removeMessageFromState: (state, action) => {
+            const { chatId, messageId } = action.payload;
+            if (state.messages[chatId]) {
+                state.messages[chatId] = state.messages[chatId].filter(m => m._id !== messageId);
+            }
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -204,6 +331,45 @@ const chatSlice = createSlice({
                 if (chat) {
                     chat.unreadCount = 0;
                 }
+            })
+             .addCase(createGroupChat.fulfilled, (state, action) => {
+                state.chats.unshift(action.payload);
+            })
+            
+            // Upload media
+            .addCase(uploadMedia.fulfilled, (state, action) => {
+                const message = action.payload;
+                const chatId = message.chatId;
+                
+                if (!state.messages[chatId]) {
+                    state.messages[chatId] = [];
+                }
+                state.messages[chatId].push(message);
+                
+                // Update chat's last message
+                const chatIndex = state.chats.findIndex(chat => chat._id === chatId);
+                if (chatIndex !== -1) {
+                    state.chats[chatIndex].lastMessage = message;
+                    state.chats[chatIndex].lastMessageAt = message.createdAt;
+                    
+                    const [chat] = state.chats.splice(chatIndex, 1);
+                    state.chats.unshift(chat);
+                }
+            })
+            
+            // Toggle mute
+            .addCase(toggleMuteChat.fulfilled, (state, action) => {
+                const { chatId, isMuted } = action.payload;
+                const chat = state.chats.find(c => c._id === chatId);
+                if (chat) {
+                    chat.isMuted = isMuted;
+                }
+            })
+            
+            // Search messages
+            .addCase(searchMessages.fulfilled, (state, action) => {
+                const { chatId, results } = action.payload;
+                state.searchResults[chatId] = results;
             });
     }
 });
@@ -215,7 +381,14 @@ export const {
     setTypingUser,
     setUserOnline,
     setUserOffline,
-    resetChatState
+    resetChatState,
+    setReplyingTo,
+    setEditingMessage,
+    updateUploadProgress,
+    addUploadingFile,
+    removeUploadingFile,
+    updateMessageInState,
+    removeMessageFromState
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

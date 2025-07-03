@@ -818,6 +818,31 @@ const postFeeds = asyncHandler(async (req, res) => {
     );
 });
 
+export const searchUsers = asyncHandler(async (req, res) => {
+    const { q } = req.query;
+    
+    if (!q || q.trim().length < 2) {
+        return res.status(200).json(
+            new ApiResponse(200, [], "Search query too short")
+        );
+    }
+
+    const users = await User.find({
+        $or: [
+            { username: { $regex: q, $options: 'i' } },
+            { fullName: { $regex: q, $options: 'i' } },
+            { email: { $regex: q, $options: 'i' } }
+        ],
+        _id: { $ne: req.user._id }
+    })
+    .select('username fullName email profilePicture')
+    .limit(20);
+
+    return res.status(200).json(
+        new ApiResponse(200, users, "Users found")
+    );
+});
+
 export {registerUser,
     registerBasicUserDetails,
     loginUser,

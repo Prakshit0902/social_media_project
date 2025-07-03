@@ -64,7 +64,27 @@ const messageSchema = Schema(
         deletedFor: [{  
             type: Schema.Types.ObjectId,
             ref: 'User'
-        }]
+        }],
+        encryptionIV: {
+            type: String,
+            required: false
+        },
+        encryptionAuthTag: {
+            type: String,
+            required: false
+        },
+        isEncrypted: {
+            type: Boolean,
+            default: true
+        },
+        editedAt: {
+            type: Date,
+            default: null
+        },
+        isEdited: {
+            type: Boolean,
+            default: false
+        }
     },
     {
         timestamps: true
