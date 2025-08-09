@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axiosPrivate } from '../../utils/api';
+import aiChatService from '../../services/aiChatService';
 
 const initialState = {
     chats: [],
@@ -9,7 +10,9 @@ const initialState = {
     messagesLoading: false,
     error: null,
     typingUsers: {}, // { chatId: [userId1, userId2] }
-    onlineUsers: []
+    onlineUsers: [],
+    aiMessages: {}, // Store AI messages separately
+    aiLoading: false
 };
 
 export const createGroupChat = createAsyncThunk(
@@ -103,17 +106,80 @@ export const searchMessages = createAsyncThunk(
     }
 );
 // Fetch user chats
+export const sendAIMessage = createAsyncThunk(
+    'chat/sendAIMessage',
+    async (content, { getState, rejectWithValue }) => {
+        try {
+            const state = getState();
+            const currentUser = state.auth.user; // Get the full user object
+            
+            // Create user message with proper user info
+            const userMessage = {
+                _id: Date.now().toString(),
+                chatId: aiChatService.AI_CHAT_ID,
+                sender: {
+                    _id: currentUser._id,
+                    username: currentUser.username,
+                    profilePicture: currentUser.profilePicture
+                },
+                content,
+                messageType: 'text',
+                createdAt: new Date().toISOString(),
+                status: 'sent',
+                isAIMessage: false
+            };
+            
+            // Get conversation history
+            const history = state.chat.aiMessages[aiChatService.AI_CHAT_ID] || [];
+            
+            // Generate AI response
+            const aiResponse = await aiChatService.generateAIResponse(content, history);
+            
+            // Create AI message
+            const aiMessage = {
+                _id: (Date.now() + 1).toString(),
+                chatId: aiChatService.AI_CHAT_ID,
+                sender: aiChatService.AI_BOT_INFO,
+                content: aiResponse,
+                messageType: 'text',
+                createdAt: new Date().toISOString(),
+                status: 'sent',
+                isAIMessage: true
+            };
+            
+            return { userMessage, aiMessage };
+        } catch (error) {
+            return rejectWithValue(error.message || 'Failed to send AI message');
+        }
+    }
+)
+
+// Add a new action to load AI messages
+export const loadAIMessages = createAsyncThunk(
+    'chat/loadAIMessages',
+    async () => {
+        const messages = aiChatService.loadAIConversation();
+        return { chatId: aiChatService.AI_CHAT_ID, messages };
+    }
+)
+
+// Update fetchUserChats
 export const fetchUserChats = createAsyncThunk(
     'chat/fetchChats',
     async (_, { rejectWithValue }) => {
         try {
             const response = await axiosPrivate.get('/api/v1/chat');
-            return response.data.data;
+            const userChats = response.data.data;
+            
+            // Add AI chat to the beginning
+            const aiChat = aiChatService.createAIChatObject();
+            
+            return [aiChat, ...userChats];
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch chats');
         }
     }
-);
+)
 
 // Create or get private chat
 export const createOrGetPrivateChat = createAsyncThunk(
@@ -163,18 +229,27 @@ export const markMessagesAsRead = createAsyncThunk(
     'chat/markAsRead',
     async (chatId, { rejectWithValue }) => {
         try {
+            // Skip API call for AI chat
+            if (chatId === 'ai-assistant-chat') {
+                return { chatId };
+            }
+            
             const response = await axiosPrivate.patch(`/api/v1/chat/${chatId}/read`);
             return { chatId };
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to mark messages as read');
         }
     }
-);
+)
 
 const chatSlice = createSlice({
     name: 'chat',
     initialState,
     reducers: {
+        clearAIChat: (state) => {
+            state.aiMessages[aiChatService.AI_CHAT_ID] = [];
+            aiChatService.clearAIConversation();
+        },
         setActiveChat: (state, action) => {
             state.activeChat = action.payload;
         },
@@ -370,7 +445,71 @@ const chatSlice = createSlice({
             .addCase(searchMessages.fulfilled, (state, action) => {
                 const { chatId, results } = action.payload;
                 state.searchResults[chatId] = results;
-            });
+            })
+            .addCase(loadAIMessages.fulfilled, (state, action) => {
+                const { chatId, messages } = action.payload;
+                state.aiMessages[chatId] = messages;
+            })
+            .addCase(sendAIMessage.pending, (state, action) => {
+                state.aiLoading = true;
+                const chatId = aiChatService.AI_CHAT_ID;
+                const currentUser = state.auth?.user; // Get user from auth state
+                
+                if (!state.aiMessages[chatId]) {
+                    state.aiMessages[chatId] = [];
+                }
+                
+                // Add user message immediately
+                const tempUserMessage = {
+                    _id: 'temp-' + Date.now(),
+                    chatId: chatId,
+                    sender: {
+                        _id: currentUser?._id || 'unknown',
+                        username: currentUser?.username || 'You',
+                        profilePicture: currentUser?.profilePicture
+                    },
+                    content: action.meta.arg,
+                    createdAt: new Date().toISOString(),
+                    status: 'sending',
+                    messageType: 'text',
+                    isAIMessage: false
+                };
+                
+                state.aiMessages[chatId].push(tempUserMessage);
+            })
+            .addCase(sendAIMessage.fulfilled, (state, action) => {
+                state.aiLoading = false;
+                const { userMessage, aiMessage } = action.payload;
+                const chatId = aiChatService.AI_CHAT_ID;
+                
+                // Remove temporary message and add real messages
+                state.aiMessages[chatId] = state.aiMessages[chatId].filter(
+                    msg => !msg._id.startsWith('temp-')
+                );
+                state.aiMessages[chatId].push(userMessage, aiMessage);
+                
+                // Update last message in chat list
+                const chatIndex = state.chats.findIndex(chat => chat._id === chatId);
+                if (chatIndex !== -1) {
+                    state.chats[chatIndex].lastMessage = aiMessage;
+                    state.chats[chatIndex].lastMessageAt = aiMessage.createdAt;
+                    
+                    // Move to top
+                    const [chat] = state.chats.splice(chatIndex, 1);
+                    state.chats.unshift(chat);
+                }
+                
+                // Save to localStorage
+                aiChatService.saveAIConversation(state.aiMessages[chatId]);
+            })
+            .addCase(sendAIMessage.rejected, (state, action) => {
+                state.aiLoading = false;
+                // Remove temporary message on error
+                const chatId = aiChatService.AI_CHAT_ID;
+                state.aiMessages[chatId] = state.aiMessages[chatId].filter(
+                    msg => !msg._id.startsWith('temp-')
+                );
+            })
     }
 });
 

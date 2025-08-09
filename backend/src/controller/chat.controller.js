@@ -39,6 +39,11 @@ export const markMessagesAsRead = asyncHandler(async (req, res) => {
     const { chatId } = req.params;
     const userId = req.user._id;
 
+     if (chatId === '000000000000000000000001') {
+        return res.status(200).json(
+            new ApiResponse(200, {}, "AI chat messages don't need read receipts")
+        );
+    }
     await Message.updateMany(
         {
             chatId,
@@ -271,6 +276,13 @@ export const getChatMessages = asyncHandler(async (req, res) => {
     const { chatId } = req.params;
     const { page = 1, limit = 50 } = req.query;
     const userId = req.user._id;
+
+    if (chatId === '000000000000000000000001') {
+        // Return empty messages for AI chat
+        return res.status(200).json(
+            new ApiResponse(200, [], "AI chat messages are handled client-side")
+        );
+    }
 
     const chat = await Chat.findOne({
         _id: chatId,
@@ -649,3 +661,4 @@ export const leaveGroupChat = asyncHandler(async (req, res) => {
         new ApiResponse(200, {}, "Left group successfully")
     );
 });
+

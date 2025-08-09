@@ -33,6 +33,7 @@ export function NavBar() {
           dispatch(resetUserState())
           dispatch(resetPostState())
 
+          localStorage.removeItem('ai-chat-messages')
           await persistor.purge()
           navigate('/')
         } catch (error) {
@@ -89,7 +90,9 @@ export function NavBar() {
       icon: (
         <IconPlus className="h-full w-full" />
       ),
-      href: "#",
+      onClick: () => {
+        navigate('/dashboard/create');
+      }
     },
     {
       title: "Notifications",

@@ -19,6 +19,7 @@ import { RegisterBasicDetails } from './components/LandingPage/RegisterBasicDeta
 import { LoadingScreen } from './components/LoadingScreen/LoadingScreen';
 import { EditProfile } from './components/SettingsComponent/EditProfile';
 import { Settings } from './components/SettingsComponent/Settings';
+import { CreatePost } from './components/CreatePost/CreatePost';
 
 function App() {
   const dispatch = useDispatch();
@@ -106,6 +107,7 @@ function App() {
         >
           <Route index element={<Home />} />
           <Route path="explore" element={<ExploreSection />} />
+          <Route path="create" element={<CreatePost />} />
           <Route path="profile/:identifier" element={<UserProfileContainer />} />
           
           <Route path="settings" element={<SettingsLayout />}>

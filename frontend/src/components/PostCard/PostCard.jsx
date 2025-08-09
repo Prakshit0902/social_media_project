@@ -597,14 +597,14 @@ export function PostCard({
                                         modalOrigin={modalOrigin}
                                     />
                     
-                                <motion.button 
+                                {/* <motion.button 
                                     className="flex items-center hover:text-neutral-800 dark:hover:text-neutral-100 transition-colors duration-150"
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
                                     <IconShare3 className="w-6 h-6" />
                                     <span className="ml-2 font-medium text-sm">{postShares}</span>
-                                </motion.button>
+                                </motion.button> */}
 
                                 {postMentions && postMentions.length > 0 && (
                                     <motion.button 

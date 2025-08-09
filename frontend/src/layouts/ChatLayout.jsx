@@ -8,6 +8,7 @@ import { NavBar } from "../components/NavBar/NavBar";
 import { useDispatch } from "react-redux";
 import socketService from "../socket/socket";
 import { addNewMessage, setUserOnline, setUserOffline } from "../store/slices/chatSlice";
+import aiChatService from "../services/aiChatService";
 
 export function ChatLayout() {
   const params = useParams();
@@ -45,7 +46,12 @@ export function ChatLayout() {
 
   const handleSelectChat = (chatId) => {
     setActiveChatId(chatId);
-    navigate(`/dashboard/messages/${chatId}`, { replace: true });
+    
+    // Only navigate if it's not an AI chat
+    if (chatId !== aiChatService.AI_CHAT_ID) {
+      navigate(`/dashboard/messages/${chatId}`, { replace: true });
+    }
+    // For AI chat, we just set the active chat without navigation
   };
 
   const handleBackToList = () => {

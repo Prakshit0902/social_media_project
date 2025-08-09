@@ -1,9 +1,8 @@
-// components/EditProfile/EditProfile.jsx
 import React, {useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { IconUser, IconAt, IconNotebook, IconDeviceFloppy, IconCamera, IconGenderMale, IconGenderFemale, IconCake } from '@tabler/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
-// import { updateAccountDetails, updateUserProfilePicture, updateBio } from '../../store/slices/userSlice'; // Assuming these thunks exist
+import { updateAccountDetails} from '../../store/slices/userSlice'; // Assuming these thunks exist
 
 export const EditProfile = () => {
   const dispatch = useDispatch();
@@ -57,14 +56,7 @@ export const EditProfile = () => {
     try {
       // --- CONTROLLER MAPPING ---
       // 1. `updateAccountDetails` for fullname & email
-      await dispatch(updateAccountDetails({ fullname: formData.fullname, email: formData.email })).unwrap();
-      
-      // 2. `updateBio` for the biography
-      await dispatch(updateBio({ bio: formData.bio })).unwrap();
-
-      // 3. You might have another controller for DOB/Gender, similar to `registerBasicUserDetails`
-      // await dispatch(updatePersonalDetails({ dob: formData.dob, gender: formData.gender })).unwrap();
-
+      await dispatch(updateAccountDetails(formData)).unwrap();
       // In a real app, you'd show a success toast here
       console.log('Profile updated successfully!');
     } catch (error) {
@@ -120,7 +112,8 @@ export const EditProfile = () => {
             
             <div className="relative">
               <IconNotebook className="absolute top-4 left-3 text-white/40" size={20} />
-              <textarea name="bio" value={formData.bio} onChange={handleInputChange} placeholder="Your Bio" rows="4" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"></textarea>
+              <textarea name="bio" value={formData.bio} onChange={handleInputChange} placeholder="Your Bio" rows="4" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none">
+              </textarea>
             </div>
 
             {/* Personal Details - uses logic from `registerBasicUserDetails` */}

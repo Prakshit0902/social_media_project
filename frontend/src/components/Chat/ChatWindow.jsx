@@ -35,10 +35,13 @@ import {
     toggleMuteChat,
     searchMessages,
     setReplyingTo,
-    setEditingMessage
+    setEditingMessage,
+    sendAIMessage,
+    loadAIMessages
 } from '../../store/slices/chatSlice';
 import socketService from '../../socket/socket';
 import { formatDistanceToNow } from 'date-fns';
+import aiChatService from '../../services/aiChatService';
 
 // Message Status Component
 const MessageStatus = ({ message, participants, currentUserId }) => {
@@ -330,12 +333,27 @@ export const ChatWindow = ({ activeChatId, onBack }) => {
         typingUsers, 
         replyingTo,
         editingMessage,
+        aiMessages,
+        aiLoading,
         searchResults
     } = useSelector((state) => state.chat);
     
     const activeChat = chats.find(chat => chat._id === activeChatId);
-    const chatMessages = messages[activeChatId] || [];
-    const typingInThisChat = typingUsers[activeChatId] || [];
+
+    const isAIChat = activeChat?.isAIChat || false;
+
+    const chatMessages = activeChat?.isAIChat 
+        ? (aiMessages[activeChatId] || [])
+        : (messages[activeChatId] || []);
+
+    
+    const typingInThisChat = activeChat?.isAIChat && aiLoading 
+        ? [{ _id: aiChatService.AI_BOT_ID, username: 'AI Assistant' }]
+        : (typingUsers[activeChatId] || []);
+
+// Load AI messages when chat is selected
+
+
     
     // Get chat details
     const isGroup = activeChat?.chatType === 'group';
@@ -345,6 +363,15 @@ export const ChatWindow = ({ activeChatId, onBack }) => {
     const displayPicture = isGroup ? activeChat?.groupIcon : otherParticipant?.profilePicture;
     const isOnline = !isGroup && otherParticipant?.isOnline;
     const isMuted = activeChat?.mutedBy?.includes(user._id);
+
+
+    console.log('Active Chat ID:', activeChatId);
+    console.log('Is AI Chat:', activeChat?.isAIChat);
+    console.log('AI Messages:', aiMessages);
+    console.log('Regular Messages:', messages);
+
+    console.log('Chat Messages to display:', chatMessages);
+    
 
     useEffect(() => {
         if (activeChatId) {
@@ -367,7 +394,8 @@ export const ChatWindow = ({ activeChatId, onBack }) => {
     // Socket listeners
     useEffect(() => {
         const handleNewMessage = ({ message, chatId }) => {
-            if (chatId === activeChatId) {
+            // Only mark as read for non-AI chats
+            if (chatId === activeChatId && chatId !== aiChatService.AI_CHAT_ID) {
                 dispatch(markMessagesAsRead(chatId));
             }
         };
@@ -427,36 +455,73 @@ export const ChatWindow = ({ activeChatId, onBack }) => {
         }, 1000);
     };
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (newMessage.trim() === '' || !activeChatId) return;
+useEffect(() => {
+    if (activeChatId === aiChatService.AI_CHAT_ID) {
+        dispatch(loadAIMessages());
+    }
+}, [activeChatId, dispatch]);
 
-        // Stop typing indicator
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
-        setIsTyping(false);
-        socketService.emit('typing', { chatId: activeChatId, isTyping: false });
-
-        if (editingMessage) {
-            // Edit message
-            await dispatch(editMessage({ 
-                messageId: editingMessage._id, 
-                content: newMessage.trim() 
-            }));
-            dispatch(setEditingMessage(null));
-        } else {
-            // Send new message
-            await dispatch(sendMessage({ 
-                chatId: activeChatId, 
-                content: newMessage.trim(),
-                replyTo: replyingTo?._id
-            }));
-                        dispatch(setReplyingTo(null));
-        }
+// Update message fetching logic
+useEffect(() => {
+    if (activeChatId) {
+        dispatch(setActiveChat(activeChatId));
         
-        setNewMessage('');
-    };
+        // Debug log to check
+        console.log('Active Chat ID:', activeChatId);
+        console.log('Is AI Chat:', activeChatId === aiChatService.AI_CHAT_ID);
+        
+        if (activeChatId === aiChatService.AI_CHAT_ID) {
+            // AI chat - load from localStorage
+            dispatch(loadAIMessages());
+        } else {
+            // Regular chat - fetch from backend
+            dispatch(fetchChatMessages({ chatId: activeChatId }));
+            dispatch(markMessagesAsRead(activeChatId));
+        }
+    }
+}, [activeChatId, dispatch]);
+
+    // Update handleSendMessage
+    const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (newMessage.trim() === '' || !activeChatId) return;
+
+    // Stop typing indicator
+    if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+    }
+    setIsTyping(false);
+    
+    // Only emit typing event for non-AI chats
+    if (!aiChatService.isAIChat(activeChatId)) {
+        socketService.emit('typing', { chatId: activeChatId, isTyping: false });
+    }
+
+    if (aiChatService.isAIChat(activeChatId)) {
+        // Handle AI chat
+        await dispatch(sendAIMessage(newMessage.trim()));
+    } else if (editingMessage) {
+        // Edit message
+        await dispatch(editMessage({ 
+            messageId: editingMessage._id, 
+            content: newMessage.trim() 
+        }));
+        dispatch(setEditingMessage(null));
+    } else {
+        // Send regular message
+        await dispatch(sendMessage({ 
+            chatId: activeChatId, 
+            content: newMessage.trim(),
+            replyTo: replyingTo?._id
+        }));
+        dispatch(setReplyingTo(null));
+    }
+    
+    setNewMessage('');
+};
+
+// Update messages display
+
 
     const handleFileSelect = async (e) => {
         const files = Array.from(e.target.files);

@@ -1,10 +1,8 @@
-// components/Settings/Settings.jsx
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { IconLock, IconEye, IconShieldCheck, IconLogout, IconAlertTriangle } from '@tabler/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { makeProfilePrivateOrPublic } from '../../store/slices/userSlice';
-// import { changePassword, makeProfilePrivateOrPublic, logoutUser } from '../../store/slices/authSlice'; // Assuming these thunks are in authSlice
+import { changePassword, makeProfilePrivateOrPublic } from '../../store/slices/userSlice';
 
 // A reusable toggle switch component
 const ToggleSwitch = ({ enabled, onChange, label }) => (

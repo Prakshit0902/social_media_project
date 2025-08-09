@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import { approveFollowRequest, changePassword, exploreSection, followAnUser, getCurrentUser, getUserProfile, getUserProfilesById, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, postFeeds, refreshAccessToken, registerBasicUserDetails, registerUser, rejectFollowRequest, searchUsers, unfollowAnUser, updateAccountDetails, updateBio, updateUserProfilePicture } from '../../controller/user.controller.js'
+import { approveFollowRequest, changePassword, exploreSection, followAnUser, getCurrentUser, getUserProfile, getUserProfilesById, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, postFeeds, refreshAccessToken, registerBasicUserDetails, registerUser, rejectFollowRequest, searchUsers, unfollowAnUser, updateAccountDetails } from '../../controller/user.controller.js'
 import { verifyJWT } from '../../middlewares/auth.middleware.js'    
 import {upload} from "../../middlewares/multer.middleware.js"
 
@@ -19,13 +19,12 @@ router.route('/register').post(registerUser)
 router.route('/login').post(loginUser)
 router.route('/logout').post(verifyJWT,logoutUser)
 router.route('/refresh-access-token').post(refreshAccessToken)
-router.route('/update-account-details ').patch(verifyJWT,updateAccountDetails)
+router.route('/update-account-details').patch(verifyJWT,updateAccountDetails)
 router.route('/change-password').post(verifyJWT,changePassword)
-router.route('/update-profile-picture').post(verifyJWT,updateUserProfilePicture)
+// router.route('/update-profile-picture').post(verifyJWT,updateUserProfilePicture)
 router.route('/profile/:identifier').get(verifyJWT,getUserProfile)
 router.route('/profiles').post(verifyJWT,getUserProfilesById)
 
-router.route('/update-bio').patch(verifyJWT,updateBio)
 router.route('/profile-privacy').post(verifyJWT,makeProfilePrivateOrPublic)
 router.route('/profile-verification').post(verifyJWT,makeProfileVerified)
 

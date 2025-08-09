@@ -285,112 +285,49 @@ const getCurrentUser = asyncHandler(async(req, res) => {
 })
 
 const updateAccountDetails = asyncHandler(async(req, res) => {
-    const {fullName, email} = req.body
+    const {fullname,email,bio,dob,gender} = req.body
+    const profilePictureLocalPath = req.file?.path
 
-    if (!fullName || !email) {
-        throw new ApiError(400, "All fields are required")
+    // if (!fullName || !email) {
+    //     throw new ApiError(400, "All fields are required")
+    // }
+    
+
+    const user = await User.findById(req.user?._id, ).select("-password -refreshToken")
+    if (user.bio !== bio){
+        user.bio = bio  
     }
 
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set: {
-                fullName,
-                email: email
-            }
-        },
-        {new: true}
-        
-    ).select("-password")
+    if (user.gender !== gender){
+        user.gender = gender
+    }
 
+    if (user.dob !== dob){
+        user.dob = dob
+    }
+    if (user.email !== email){
+        user.email = email
+    }
+    if (user.fullname !== fullname){
+        user.fullname = fullname
+    }
+
+    if (profilePictureLocalPath){
+        const localFile = await uploadOnCloudinary(profilePictureLocalPath)
+        if (!localFile.url){
+            throw new ApiError(400,'profile picture missing')
+        }
+
+        user.profilePicture = localFile.url
+    }
+
+    await user.save({validateBeforeSave : false})
     return res
     .status(200)
     .json(new ApiResponse(200, user, "Account details updated successfully"))
 });
 
-const updateUserProfilePicture = asyncHandler(async(req, res) => {
-    const profilePictureLocalPath = req.file?.path
 
-    if (!profilePictureLocalPath) {
-        throw new ApiError(400, "profile picture file is missing")
-    }
-
-    const pfp = await uploadOnCloudinary(profilePictureLocalPath)
-
-    if (!avatar.url) {
-        throw new ApiError(400, "Error while uploading on avatar")
-        
-    }
-
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set:{
-                profilePicture: pfp.url
-            }
-        },
-        {new: true}
-    ).select("-password")
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, user, "Profile image updated successfully")
-    )
-})
-
-const updateBio = asyncHandler(async (req,res) => {
-    const {bio} = req.body
-
-    const user = await User.findByIdAndUpdate(req.user._id,
-        {
-            $set : {
-                bio : bio
-            }
-        },{
-            new : true
-        }
-    )
-    
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(200, user, "Bio updated successfully")
-    )
-
-})
-
-const updatePersonalDetails = asyncHandler(async (req,res) => {
-    const {dob,gender} = req.body
-
-    if (!dob && !gender){
-        throw new ApiError('400','No details provided')
-    }
-
-    let fieldsToUpdate = {}
-    if (dob){
-        fieldsToUpdate.dob = dob
-    }
-    if (gender){
-        fieldsToUpdate.gender = gender
-    }
-
-    const user = await User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $set : fieldsToUpdate
-        },
-        {
-            new : true
-        }
-    ).select('-password -refreshToken')
-
-
-    
-    return res
-    .status(200)
-    .json(new ApiResponse(200, user, "Personal details updated successfully"))
-})
 
 // const getSavedPosts = asyncHandler(async (req,res) => {
 // })
@@ -818,7 +755,7 @@ const postFeeds = asyncHandler(async (req, res) => {
     );
 });
 
-export const searchUsers = asyncHandler(async (req, res) => {
+const searchUsers = asyncHandler(async (req, res) => {
     const { q } = req.query;
     
     if (!q || q.trim().length < 2) {
@@ -849,10 +786,8 @@ export {registerUser,
     logoutUser,
     updateAccountDetails,
     changePassword,
-    updateUserProfilePicture,
     getCurrentUser,
     refreshAccessToken,
-    updateBio,
     getUserProfile,
     getUserProfilesById,
     makeProfilePrivateOrPublic,
@@ -862,4 +797,5 @@ export {registerUser,
     approveFollowRequest,
     rejectFollowRequest,
     exploreSection,
-    postFeeds}
+    postFeeds,
+    searchUsers}

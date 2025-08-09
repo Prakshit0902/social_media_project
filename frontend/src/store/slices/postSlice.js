@@ -7,7 +7,10 @@ const initialState = {
     isLikedByPost: {},
     loading: false,
     error: null,
-    commentsByPost : {}
+    commentsByPost : {},
+    createPostLoading: false,
+    createPostError: null,
+    posts: []
 }
 
 export const toggleLikePost = createAsyncThunk(
@@ -43,6 +46,24 @@ export const toggleLikePost = createAsyncThunk(
     }
 )
 
+export const createPost = createAsyncThunk(
+    'post/create',
+    async (formData, { rejectWithValue }) => {
+        try {
+            const response = await axiosPrivate.post('/api/v1/post/create', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                withCredentials: true
+            });
+            return response.data.data;
+        } catch (error) {
+            const message = error?.response?.data?.message || error?.message || 'Failed to create post';
+            return rejectWithValue(message);
+        }
+    }
+)
+
 const postSlice = createSlice({
     name: 'post',
     initialState: initialState,
@@ -64,6 +85,9 @@ const postSlice = createSlice({
             likedPostIds.forEach(postId => {
                 state.isLikedByPost[postId] = true;
             });
+        },
+        addNewPost: (state, action) => {
+            state.posts.unshift(action.payload);
         }
     },
     extraReducers: (builder) => {
@@ -86,8 +110,22 @@ const postSlice = createSlice({
                 state.error = action.payload;
                 console.error('Like toggle failed:', action.payload);
             })
+            .addCase(createPost.pending, (state) => {
+                state.createPostLoading = true;
+                state.createPostError = null;
+            })
+            .addCase(createPost.fulfilled, (state, action) => {
+                state.createPostLoading = false;
+                state.posts.unshift(action.payload);
+                console.log('Post created successfully:', action.payload);
+            })
+            .addCase(createPost.rejected, (state, action) => {
+                state.createPostLoading = false;
+                state.createPostError = action.payload;
+                console.error('Post creation failed:', action.payload);
+            })
     }
 });
 
-export const { initializeLikedStatus,resetPostState,setUserLikedPosts} = postSlice.actions;
+export const { initializeLikedStatus,resetPostState,setUserLikedPosts,addNewPost} = postSlice.actions;
 export default postSlice.reducer;
