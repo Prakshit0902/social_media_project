@@ -25,6 +25,7 @@ export const CreatePost = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
+
   const handleFileSelect = (file) => {
     if (!file) return;
 
@@ -85,10 +86,10 @@ export const CreatePost = () => {
     }
 
     try {
-      // Create FormData for file upload matching backend expectations
+      
       const formData = new FormData();
-      formData.append('media', selectedFile); // Changed from 'file' to 'media'
-      formData.append('caption', description); // Changed from 'description' to 'caption'
+      formData.append('media', selectedFile);
+      formData.append('mediaType',postType) 
       
       // Add location to caption if provided
       let captionWithLocation = description;
@@ -113,8 +114,6 @@ export const CreatePost = () => {
         formData.set('caption', captionWithLocation);
       }
       
-      formData.append('mediaType', postType); // Add media type for backend processing
-      
       // Dispatch the createPost action
       const result = await dispatch(createPost(formData));
       
@@ -123,8 +122,7 @@ export const CreatePost = () => {
         
         // Show success message
         alert('Post created successfully!');
-        
-        // Navigate back to dashboard
+
         navigate('/dashboard');
       } else {
         // Handle error case

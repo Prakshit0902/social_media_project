@@ -51,9 +51,6 @@ export const createPost = createAsyncThunk(
     async (formData, { rejectWithValue }) => {
         try {
             const response = await axiosPrivate.post('/api/v1/post/create', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
                 withCredentials: true
             });
             return response.data.data;

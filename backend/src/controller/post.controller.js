@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const toggleLike = asyncHandler(async (req,res) => {
     console.log('entering the like post ');
@@ -67,5 +68,44 @@ const toggleLike = asyncHandler(async (req,res) => {
 
 })
 
+const createPost = asyncHandler(async (req,res) => {
+    console.log(req.body);
+    
+    const {caption,mediaType} = req.body
+    const mediaLocalPath = req.file?.path
+    let mediaResponse = null
 
-export {toggleLike}
+    if (mediaLocalPath){
+        mediaResponse = await uploadOnCloudinary(mediaLocalPath)
+
+        if (!mediaResponse) {
+            console.error("Cloudinary upload failed try again later");
+        }
+    }
+    else {
+        throw new ApiError(500,'Failed to find the media')
+    }
+    const post = await Post.create({
+        owner : req.user?._id,
+        media : {
+            url : mediaResponse.url,
+            type : mediaType
+        },
+        caption : caption
+    })
+
+    const createdPost = await Post.findById(post._id)
+    console.log(createdPost);
+
+    return res
+        .status(201)
+        .json(
+            new ApiResponse(201, {
+                post: createdPost,
+            }, 'Post created successfully')
+        );
+    
+})
+
+
+export {toggleLike,createPost}
