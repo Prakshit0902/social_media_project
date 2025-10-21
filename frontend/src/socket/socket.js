@@ -15,8 +15,14 @@ connect() {
         return;
     }
 
-    // Make sure the URL matches your backend port
-    this.socket = io('http://localhost:3000', {
+    // Environment-based Socket URL
+    const SOCKET_URL = import.meta.env.VITE_API_URL 
+        ? import.meta.env.VITE_API_URL.replace('/api', '')  // Remove /api if present
+        : 'http://localhost:3000';
+    
+    console.log('Connecting to socket:', SOCKET_URL);
+
+    this.socket = io(SOCKET_URL, {
         withCredentials: true,
         transports: ['polling', 'websocket'], // Start with polling, upgrade to websocket
         reconnection: true,

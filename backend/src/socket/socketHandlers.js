@@ -8,9 +8,21 @@ import cookie from 'cookie';
 const userSocketMap = new Map(); // userId -> socketId
 
 export const initializeSocketIO = (server) => {
+    // Environment-based CORS origins
+    const allowedOrigins = process.env.NODE_ENV === 'production'
+        ? [
+            "https://synapse-net.netlify.app",
+            process.env.FRONTEND_URL
+          ].filter(Boolean)
+        : [
+            "http://localhost:5173",
+            "http://192.168.252.186:5173",
+            "https://synapse-net.netlify.app"
+          ];
+
     const io = new Server(server, {
         cors: {
-            origin: ["http://localhost:5173", "http://192.168.252.186:5173"],
+            origin: allowedOrigins,
             credentials: true,
             methods: ["GET", "POST"]
         }

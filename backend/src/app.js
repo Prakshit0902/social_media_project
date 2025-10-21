@@ -4,7 +4,18 @@
   import routes from './routes/index.js'
 
   const app = express()
-  const allowedOrigins = ["http://localhost:5173","http://192.168.252.186:5173"]
+  
+  // Environment-based CORS configuration
+  const allowedOrigins = process.env.NODE_ENV === 'production' 
+    ? [
+        "https://synapse-net.netlify.app",  // Production frontend
+        process.env.FRONTEND_URL            // Additional frontend URL from env
+      ].filter(Boolean)
+    : [
+        "http://localhost:5173",
+        "http://192.168.252.186:5173",
+        "https://synapse-net.netlify.app"   // Allow production URL in development too
+      ]
 
   app.use(json())
   app.use(cookieParser())
@@ -16,6 +27,7 @@
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
+        console.log('Blocked origin:', origin);
         return callback(new Error("Not allowed by CORS"));
       }
     },
