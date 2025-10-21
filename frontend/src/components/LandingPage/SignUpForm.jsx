@@ -58,11 +58,12 @@ export function SignUpForm() {
     try {
       const result = await dispatch(signupUser(formData)).unwrap();
     
-        // Initialize empty liked posts
+      // Initialize empty liked posts
       dispatch(setUserLikedPosts([]));
-      // Navigate to dashboard after successful signup
-      await dispatch(fetchCurrentUser()).unwrap()
-      navigate('/dashboard', { replace: true });
+      
+      // Don't fetch current user here - the signup already returns the user
+      // Navigate to complete-profile instead of dashboard since username is not set
+      navigate('/complete-profile', { replace: true });
     } catch (error) {
       // Error is already in Redux state, you can show it in UI
       console.error('Signup failed:', error);

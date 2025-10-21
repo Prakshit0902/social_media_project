@@ -36,9 +36,21 @@ function App() {
   useEffect(() => {
     if (!appInitialized.current) {
       appInitialized.current = true;
+      console.log('Initializing auth...');
       dispatch(initializeAuth());
     }
   }, [dispatch]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Auth State:', {
+      isAuthenticated,
+      authChecked,
+      hasUser: !!user,
+      username: user?.username,
+      isProfileComplete: !!user?.username
+    });
+  }, [isAuthenticated, authChecked, user]);
 
   if (!authChecked) {
     return <LoadingScreen message="Initializing Session..." />;
@@ -49,6 +61,15 @@ function App() {
   }
 
   const isProfileComplete = !!user?.username;
+
+  // Additional safety check - if we somehow have isAuthenticated but no user, reset
+  useEffect(() => {
+    if (isAuthenticated && !user && authChecked && !loading) {
+      console.warn('Auth state inconsistency detected - resetting');
+      // This shouldn't happen, but just in case
+      dispatch(initializeAuth());
+    }
+  }, [isAuthenticated, user, authChecked, loading, dispatch]);
 
   if (isAuthenticated && loading && !isTransitioning) {
     return <LoadingScreen message="Loading..." />;
