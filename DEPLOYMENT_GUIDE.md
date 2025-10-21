@@ -13,10 +13,10 @@
 - **Name**: synapse-backend (or your choice)
 - **Region**: Choose closest to your users
 - **Branch**: main
-- **Root Directory**: backend
+- **Root Directory**: `backend`
 - **Runtime**: Node
 - **Build Command**: `npm install`
-- **Start Command**: `npm start`
+- **Start Command**: `npm start` (this runs the production start script)
 
 #### 3. **Set Environment Variables in Render Dashboard**
 Add these variables in the Environment section:
