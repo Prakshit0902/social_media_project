@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useRef } from 'react';
-import { initializeAuth } from './store/slices/authSlice';
+import { initializeAuth, resetAuthState } from './store/slices/authSlice';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 // Layouts
@@ -61,15 +61,6 @@ function App() {
   }
 
   const isProfileComplete = !!user?.username;
-
-  // Additional safety check - if we somehow have isAuthenticated but no user, reset
-  useEffect(() => {
-    if (isAuthenticated && !user && authChecked && !loading) {
-      console.warn('Auth state inconsistency detected - resetting');
-      // This shouldn't happen, but just in case
-      dispatch(initializeAuth());
-    }
-  }, [isAuthenticated, user, authChecked, loading, dispatch]);
 
   if (isAuthenticated && loading && !isTransitioning) {
     return <LoadingScreen message="Loading..." />;
