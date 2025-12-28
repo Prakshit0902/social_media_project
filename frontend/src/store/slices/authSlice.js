@@ -253,9 +253,15 @@ import { axiosPrivate, axiosPublic } from "../../utils/api";
         state.loading = true;
       })
       .addCase(initializeAuth.fulfilled, (state, action) => {
-        // The user state will have already been set by fetchCurrentUser or refreshAccessToken.
-        // We just need to confirm the final status.
-        state.isAuthenticated = true;
+        // Set the user from the action payload (returned from fetchCurrentUser or refreshAccessToken)
+        if (action.payload && action.payload.data) {
+          state.user = action.payload.data;
+          state.isAuthenticated = true;
+        } else {
+          // If no user data returned, something is wrong - reset auth
+          state.user = null;
+          state.isAuthenticated = false;
+        }
         state.authChecked = true;
         state.loading = false;
       })

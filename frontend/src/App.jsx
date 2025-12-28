@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useRef } from 'react';
-import { initializeAuth } from './store/slices/authSlice';
+import { initializeAuth, resetAuthState } from './store/slices/authSlice';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 // Layouts
@@ -36,9 +36,21 @@ function App() {
   useEffect(() => {
     if (!appInitialized.current) {
       appInitialized.current = true;
+      console.log('Initializing auth...');
       dispatch(initializeAuth());
     }
   }, [dispatch]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Auth State:', {
+      isAuthenticated,
+      authChecked,
+      hasUser: !!user,
+      username: user?.username,
+      isProfileComplete: !!user?.username
+    });
+  }, [isAuthenticated, authChecked, user]);
 
   if (!authChecked) {
     return <LoadingScreen message="Initializing Session..." />;

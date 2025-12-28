@@ -4,7 +4,10 @@ import axios from 'axios';
 import { store } from '../store/store';
 import { refreshAccessToken, resetAuthState } from '../store/slices/authSlice';
 
-const BASE_URL = '/'; // Your Vite proxy handles the full URL
+// Environment-based BASE_URL
+const BASE_URL = import.meta.env.VITE_API_URL || '/';
+
+console.log('API Base URL:', BASE_URL);
 
 // --- 1. The Public Instance ---
 // For any request that does NOT need authentication.

@@ -8,20 +8,23 @@ import { ApiResponse } from '../utils/ApiResponse.js'
 import { Post } from '../models/post.model.js'
 
 
+// Cookie options - environment based for cross-origin support
+const isProduction = process.env.NODE_ENV === 'production';
+
 const optionsRefresh = {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax',  // Add this
-    path: '/',        // Add this
-    maxAge: 10 * 24 * 60 * 60 * 1000
+    secure: isProduction,  // true in production (HTTPS required)
+    sameSite: isProduction ? 'none' : 'lax',  // 'none' allows cross-origin in production
+    path: '/',
+    maxAge: 10 * 24 * 60 * 60 * 1000  // 10 days
 }
 
 const options = {
     httpOnly: true,
-    secure: false,
-    sameSite: 'lax',  // Add this
-    path: '/',        // Add this
-    maxAge: 1 * 24 * 60 * 60 * 1000 
+    secure: isProduction,  // true in production (HTTPS required)
+    sameSite: isProduction ? 'none' : 'lax',  // 'none' allows cross-origin in production
+    path: '/',
+    maxAge: 1 * 24 * 60 * 60 * 1000  // 1 day
 }
 
 
@@ -190,15 +193,18 @@ const logoutUser = asyncHandler(async (req,res) => {
         }
     )
 
-    const options = {
-        httpOnly : true,
-        secure : true
+    // Use the same cookie options as login for consistent behavior
+    const logoutOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/'
     }
 
     return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", logoutOptions)
+    .clearCookie("refreshToken", logoutOptions)
     .json(new ApiResponse(200, {}, "User logged Out"))
 })
 

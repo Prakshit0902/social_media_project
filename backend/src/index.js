@@ -6,6 +6,7 @@ import { initializeSocketIO } from './socket/socketHandlers.js';
 
 dotenv.config();
 
+// Use environment PORT for production (Render provides this) or default to 8000 for local
 const PORT = process.env.PORT || 8000;
 
 // Create HTTP server
