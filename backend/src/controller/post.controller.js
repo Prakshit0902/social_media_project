@@ -68,6 +68,55 @@ const toggleLike = asyncHandler(async (req,res) => {
 
 })
 
+const toggleSave = asyncHandler(async (req,res) => {
+    const {postId} = req.body
+    if (!postId){
+        throw new ApiError(404,'No such post found')
+    }
+
+    const post = await Post.findById(postId)
+    if (!post){
+        throw new ApiError(404,'No such post found')
+    }
+
+    const isSaved = post.savedBy.includes(req.user._id)
+
+    const updatedPost = await Post.findByIdAndUpdate(postId,
+        isSaved ? 
+        {
+            $pull : {
+                savedBy : req.user._id
+            }
+        }:
+        {
+            $push : {
+                savedBy : req.user._id
+            }
+        },{
+            new : true
+        }
+    )
+
+    await User.findByIdAndUpdate(req.user._id,
+        isSaved ? 
+        {
+            $pull : {
+                savedPosts : updatedPost._id
+            }  
+        }:
+        {
+            $push : {
+                savedPosts : updatedPost._id
+            }
+        }
+    )
+
+    return res.status(200).json(
+        new ApiResponse(200,{updatedPost,isSaved},isSaved ? 'Saved Post' : 'Unsaved Post')
+    )
+})
+
+
 const createPost = asyncHandler(async (req,res) => {
     console.log(req.body);
     
@@ -94,18 +143,22 @@ const createPost = asyncHandler(async (req,res) => {
         caption : caption
     })
 
-    const createdPost = await Post.findById(post._id)
-    console.log(createdPost);
+    await User.findByIdAndUpdate(req.user?._id,{
+        $push : {
+            posts : post._id
+        }
+    })
+    console.log(post);
 
     return res
         .status(201)
         .json(
             new ApiResponse(201, {
-                post: createdPost,
+                post: post,
             }, 'Post created successfully')
         );
     
 })
 
 
-export {toggleLike,createPost}
+export {toggleLike,createPost,toggleSave}

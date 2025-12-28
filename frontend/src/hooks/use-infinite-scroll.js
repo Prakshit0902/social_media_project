@@ -1,38 +1,61 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 const useInfiniteScroll = (callback, isLoading, hasMore) => {
   const observerRef = useRef(null);
   const loadMoreRef = useRef(null);
+  const callbackRef = useRef(callback);
+
+  // Keep callback ref updated without triggering useEffect
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
   useEffect(() => {
-    // Create an IntersectionObserver to detect when the trigger element is in view
-    observerRef.current = new IntersectionObserver(
+    // Don't create observer if there's nothing more to load
+    if (!hasMore) {
+      return;
+    }
+
+    const currentElement = loadMoreRef.current;
+    
+    // Create IntersectionObserver with optimized settings
+    const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
-          callback(); // Trigger the callback to load more data
+        const entry = entries[0];
+        
+        // Only trigger if:
+        // 1. Element is intersecting
+        // 2. There's more data to load
+        // 3. Not currently loading
+        if (entry.isIntersecting && hasMore && !isLoading) {
+          callbackRef.current();
         }
       },
       {
-        root: null, // Use the viewport as the root
-        rootMargin: '100px', // Trigger a bit before the element is fully in view
-        threshold: 0.1, // Trigger when 10% of the element is visible
+        root: null, // Use viewport as root
+        rootMargin: '200px', // Trigger 200px before reaching the element (better UX)
+        threshold: 0, // Trigger as soon as any pixel is visible
       }
     );
 
+    // Store observer reference
+    observerRef.current = observer;
+
     // Observe the trigger element if it exists
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current);
+    if (currentElement) {
+      observer.observe(currentElement);
     }
 
-    // Cleanup observer on unmount
+    // Cleanup function
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+      if (observer) {
+        observer.disconnect();
       }
+      observerRef.current = null;
     };
-  }, [callback, isLoading, hasMore]); // Re-create observer if dependencies change
+  }, [isLoading, hasMore]); // Only depend on isLoading and hasMore, not callback
 
-  // Return the ref to be attached to the trigger element
+  // Return the ref to attach to the trigger element
   return loadMoreRef;
 };
 

@@ -683,7 +683,7 @@ const exploreSection = asyncHandler(async (req, res) => {
 
 const postFeeds = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 3;
     const skip = (page - 1) * limit;
 
     const posts = await Post.aggregate([
@@ -780,6 +780,89 @@ const searchUsers = asyncHandler(async (req, res) => {
     );
 });
 
+const getLikedPosts = asyncHandler(
+    async (req,res) => {
+        const userId = req.user._id
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 12
+
+        const skip = (page - 1) * limit
+
+        const user = await User.findById(userId).select('likedPosts')
+
+        if (!user) {
+            throw new ApiError(404,'User not found')
+        }
+
+        const totalCount = user.likedPosts.length
+        const paginatedIds = user.likedPosts.slice(skip,skip + limit)
+        const posts = await Post.find(
+            {
+                _id : {
+                    $in : paginatedIds
+                }
+            }
+        ).select('media likes comments').lean()
+
+        const postsWithCount = posts.map(post => 
+            ({...post, likesCount : posts.likes?.length || 0,commentsCount : posts.comments?.length || 0})
+        )
+
+        return res.status(200).json(
+            new ApiResponse(200, {
+                posts : postsWithCount,
+                pagination : {
+                    currentPage : page,
+                    totalPages : Math.ceil(totalCount / limit),
+                    totalCount,
+                    hasMore : skip + limit < totalCount
+                }
+            },'Liked posts fetched successfully')
+        )
+    }
+)
+const getSavedPosts = asyncHandler(
+    async (req,res) => {
+        const userId = req.user._id
+        const page = parseInt(req.query.page) || 1
+        const limit = parseInt(req.query.limit) || 12
+
+        const skip = (page - 1) * limit
+
+        const user = await User.findById(userId).select('savedPosts')
+
+        if (!user) {
+            throw new ApiError(404,'User not found')
+        }
+
+        const totalCount = user.savedPosts.length
+        const paginatedIds = user.savedPosts.slice(skip,skip + limit)
+        const posts = await Post.find(
+            {
+                _id : {
+                    $in : paginatedIds
+                }
+            }
+        ).select('media likes comments').lean()
+
+        const postsWithCount = posts.map(post => 
+            ({...post, likesCount : posts.likes?.length || 0,commentsCount : posts.comments?.length || 0})
+        )
+
+        return res.status(200).json(
+            new ApiResponse(200, {
+                posts : postsWithCount,
+                pagination : {
+                    currentPage : page,
+                    totalPages : Math.ceil(totalCount / limit),
+                    totalCount,
+                    hasMore : skip + limit < totalCount
+                }
+            },'Saved posts fetched successfully')
+        )
+    }
+)
+
 export {registerUser,
     registerBasicUserDetails,
     loginUser,
@@ -798,4 +881,6 @@ export {registerUser,
     rejectFollowRequest,
     exploreSection,
     postFeeds,
-    searchUsers}
+    searchUsers,
+    getLikedPosts,
+    getSavedPosts}

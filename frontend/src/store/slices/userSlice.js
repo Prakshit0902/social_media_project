@@ -8,7 +8,21 @@ const initialState = {
     selectedUserId: null,
     loading: false,
     error: null,
-    profileById : null
+    profileById : null,
+    likedPosts: {
+        posts: [],
+        loading: false,
+        error: null,
+        pagination: null,
+        fetched: false
+    },
+    savedPosts: {
+        posts: [],
+        loading: false,
+        error: null,
+        pagination: null,
+        fetched: false
+    }
 }
 
 export const getUserProfilesByIds = createAsyncThunk(
@@ -101,6 +115,33 @@ export const searchUsers = createAsyncThunk(
         }
     }
 );
+
+export const getLikedPosts = createAsyncThunk(
+    'user/getLikedPosts',
+    async ({page = 1,reset = false},{rejectWithValue}) => {
+        try {
+            const response = await axiosPrivate.get(`/api/v1/user/liked-posts?page=${page}&limit=12`)
+            return {
+                data : response.data.data,page,reset
+            }
+        } catch (error) {
+            return rejectWithValue(message)
+        }
+    }
+)
+export const getSavedPosts = createAsyncThunk(
+    'user/getSavedPosts',
+    async ({page = 1,reset = false},{rejectWithValue}) => {
+        try {
+            const response = await axiosPrivate.get(`/api/v1/user/saved-posts?page=${page}&limit=12`)
+            return {
+                data : response.data.data,page,reset
+            }
+        } catch (error) {
+            return rejectWithValue(message)
+        }
+    }
+)
 const userSlice = createSlice({
     name : 'user',
     initialState : initialState,
@@ -112,6 +153,12 @@ const userSlice = createSlice({
             state.profileById = null
             state.loading = false // Reset loading state
             state.error = null
+        },
+        resetLikedPosts : (state) => {
+            state.likedPosts = initialState.likedPosts
+        },
+        resetSavedPosts : (state) => {
+            state.savedPosts = initialState.savedPosts
         }
     },
 
@@ -260,7 +307,48 @@ const userSlice = createSlice({
 
         })
 
+        .addCase(getLikedPosts.pending, (state) => {
+            state.likedPosts.loading = true;
+            state.likedPosts.error = null;
+        })
+        .addCase(getLikedPosts.fulfilled, (state, action) => {
+            state.likedPosts.loading = false;
+            state.likedPosts.fetched = true;
+            state.likedPosts.pagination = action.payload.data.pagination;
+            
+            if (action.payload.reset || action.payload.page === 1) {
+                state.likedPosts.posts = action.payload.data.posts;
+            } else {
+                state.likedPosts.posts = [...state.likedPosts.posts, ...action.payload.data.posts];
+            }
+        })
+        .addCase(getLikedPosts.rejected, (state, action) => {
+            state.likedPosts.loading = false;
+            state.likedPosts.error = action.payload;
+        })
+
+        // Saved Posts
+        .addCase(getSavedPosts.pending, (state) => {
+            state.savedPosts.loading = true;
+            state.savedPosts.error = null;
+        })
+        .addCase(getSavedPosts.fulfilled, (state, action) => {
+            state.savedPosts.loading = false;
+            state.savedPosts.fetched = true;
+            state.savedPosts.pagination = action.payload.data.pagination;
+            
+            if (action.payload.reset || action.payload.page === 1) {
+                state.savedPosts.posts = action.payload.data.posts;
+            } else {
+                state.savedPosts.posts = [...state.savedPosts.posts, ...action.payload.data.posts];
+            }
+        })
+        .addCase(getSavedPosts.rejected, (state, action) => {
+            state.savedPosts.loading = false;
+            state.savedPosts.error = action.payload;
+        })
+
     }
 })
-export const {resetUserState,clearUserProfile } = userSlice.actions
+export const {resetUserState,clearUserProfile,resetLikedPosts,resetSavedPosts} = userSlice.actions
 export default userSlice.reducer

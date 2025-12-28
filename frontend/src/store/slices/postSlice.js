@@ -1,10 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import  { axiosPrivate } from "../../utils/api";
+import axios from "axios";
 // import api from "api";
 
 const initialState = {
     likesByPost: {},
     isLikedByPost: {},
+    isSavedByPost: {},
     loading: false,
     error: null,
     commentsByPost : {},
@@ -46,6 +48,26 @@ export const toggleLikePost = createAsyncThunk(
     }
 )
 
+export const toggleSavePost = createAsyncThunk(
+    'post/save',
+    async (postId, {getState,rejectWithValue}) => {
+        try {
+            const {auth} = getState()
+            const currentUser = auth.user
+
+            if (!currentUser) {
+                return rejectWithValue('user not authenticated')
+            }
+
+            const response = await axiosPrivate.post('/api/v1/post/save',{postId},{withCredentials : true})
+            return response.data.data
+        } catch (error) {
+            const message = error?.response?.data?.message || error?.message || 'Failed to toggle like';
+            return rejectWithValue(message);
+        }
+    }
+)
+
 export const createPost = createAsyncThunk(
     'post/create',
     async (formData, { rejectWithValue }) => {
@@ -72,6 +94,18 @@ const postSlice = createSlice({
                 state.isLikedByPost[post._id] = post.likedByUsers?.some(user => user._id === currentUserId) || false;
             });
         },
+        initializeSavedStatus: (state, action) => {
+            const { posts, currentUserId } = action.payload;
+            posts.forEach(post => {
+                if (post && post._id && Array.isArray(post.savedBy)) {
+                    state.isSavedByPost[post._id] = post.savedBy.some(
+                        id => id.toString() === currentUserId.toString()
+                    );
+                } else {
+                    state.isSavedByPost[post._id] = false;
+                }
+            });
+        },
         resetPostState : (state) => {
             return initialState
         },
@@ -85,6 +119,11 @@ const postSlice = createSlice({
         },
         addNewPost: (state, action) => {
             state.posts.unshift(action.payload);
+        },
+        setPostSavedOptimistic: (state, action) => {
+            if (!state.isSavedByPost) state.isSavedByPost = {};
+            const { postId, isSaved } = action.payload;
+            state.isSavedByPost[postId] = isSaved;
         }
     },
     extraReducers: (builder) => {
@@ -98,7 +137,6 @@ const postSlice = createSlice({
                 const { updatedPost, isLiked } = action.payload;
                 const postId = updatedPost._id;
                 state.likesByPost[postId] = updatedPost.likes;
-                // Note: isLiked from backend is the state BEFORE toggle
                 state.isLikedByPost[postId] = !isLiked;
                 console.log('Like toggled successfully:', action.payload);
             })
@@ -106,6 +144,23 @@ const postSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
                 console.error('Like toggle failed:', action.payload);
+            })
+            .addCase(toggleSavePost.rejected, (state,action) => {
+                state.loading = false
+                state.error = action.payload
+                console.error('Save toggle failed',action.payload)
+                
+            }) 
+            .addCase(toggleSavePost.fulfilled,(state,action) => {
+                state.loading = false
+                const { updatedPost, isSaved } = action.payload;
+                const postId = updatedPost._id;
+                state.isSavedByPost[postId] = !isSaved;
+                console.log('successfully toggled save post',action.payload)
+            })
+            .addCase(toggleSavePost.pending, (state) => {
+                state.loading = true
+                state.error = null
             })
             .addCase(createPost.pending, (state) => {
                 state.createPostLoading = true;
@@ -124,5 +179,5 @@ const postSlice = createSlice({
     }
 });
 
-export const { initializeLikedStatus,resetPostState,setUserLikedPosts,addNewPost} = postSlice.actions;
+export const {setPostSavedOptimistic,initializeLikedStatus,initializeSavedStatus,resetPostState,setUserLikedPosts,addNewPost} = postSlice.actions;
 export default postSlice.reducer;

@@ -1,51 +1,35 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo, useCallback } from "react";
 import { PostCard } from "../PostCard/PostCard";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserPostFeed, resetFeedPage } from "../../store/slices/feedSlice";
-import { getUserProfilesByIds } from "../../store/slices/userSlice";
-import { initializeLikedStatus } from "../../store/slices/postSlice";
-import useInfiniteScroll from "../../hooks/use-infinite-scroll";
+import { initializeLikedStatus, initializeSavedStatus } from "../../store/slices/postSlice";
+import { Virtuoso } from 'react-virtuoso';
 
 function Home() {
     const dispatch = useDispatch();
     const { feedPosts, feedLoading, feedPage, hasMoreFeed, error } = useSelector((state) => state.feed);
-    const { profilesById = {} } = useSelector((state) => state.user);
     const { user, isAuthenticated } = useSelector((state) => state.auth);
     const { isLikedByPost } = useSelector((state) => state.post);
-    
-    // Use the custom hook BEFORE any conditional returns
-    const loadMore = () => {
-        if (isAuthenticated) {
-            dispatch(getUserPostFeed(feedPage + 1));
-        }
-    }
-    const loadMoreRef = useInfiniteScroll(loadMore, feedLoading, hasMoreFeed);
+    const { isSavedByPost = {} } = useSelector((state) => state.post);
     
     const initialLoadDone = useRef(false);
+    
+    // Memoize the loadMore callback for virtuoso
+    const loadMore = useCallback(() => {
+        if (isAuthenticated && !feedLoading && hasMoreFeed) {
+            dispatch(getUserPostFeed(feedPage + 1));
+        }
+    }, [isAuthenticated, feedLoading, hasMoreFeed, feedPage, dispatch]);
 
-    // Only fetch if authenticated
+    // Initial load - only once when authenticated
     useEffect(() => {
-        // This condition ensures the fetch only happens ONCE on the initial load:
-        // 1. User must be logged in.
-        // 2. There should be no posts currently in the state.
-        // 3. A fetch should not already be in progress.
-        if (isAuthenticated && feedPosts.length === 0 && !feedLoading) {
-            // It's safe to reset and fetch here.
+        if (isAuthenticated && feedPosts.length === 0 && !feedLoading && !initialLoadDone.current) {
+            initialLoadDone.current = true;
             dispatch(resetFeedPage()); 
             dispatch(getUserPostFeed(1));
         }
     }, [dispatch, isAuthenticated, feedPosts.length, feedLoading]);
-
-    // Fetch user profiles when posts are loaded
-    // useEffect(() => {
-    //     console.log(feedPosts)
-        
-    //     if (Array.isArray(feedPosts) && feedPosts.length > 0) {
-    //         const ownerIds = [...new Set(feedPosts.map((p) => p.owner))];
-    //         dispatch(getUserProfilesByIds(ownerIds));
-    //     }
-    // }, [dispatch, feedPosts]);
 
     // Initialize liked status when posts are loaded
     useEffect(() => {
@@ -54,20 +38,41 @@ function Home() {
                 posts: feedPosts, 
                 currentUserId: user._id 
             }));
-            
+            dispatch(initializeSavedStatus({ 
+                posts: feedPosts, 
+                currentUserId: user._id 
+            }));
         }
+    }, [dispatch, feedPosts.length, user?._id]); // Only depend on length, not entire array
 
-        // console.log(feedPosts);
-        // console.log(user);
+    // Memoize post items for virtuoso
+    const postItems = useMemo(() => {
+        if (!Array.isArray(feedPosts)) return [];
         
-        
-    }, [dispatch, feedPosts, user?._id]);
+        return feedPosts.map((post, idx) => ({
+            key: post._id || `fallback-feed-${idx}-${Date.now()}`,
+            postId: post._id,
+            postOwnerId : post.owner?._id,
+            postContent: post.media?.map(m => m.url) || [],
+            postContentType: post.media?.map(m => m.type) || [],
+            username: post.owner?.username || 'Unknown',
+            userProfilePicture: post.owner?.profilePicture,
+            postLikes: post.likes || 0,
+            postComments: post.comments?.length || 0,
+            postShares: post.shares || 0,
+            postDescription: post.caption || '',
+            isLiked: isLikedByPost[post._id] ?? post.likedByUsers?.includes(user?._id) ?? false,
+            isSaved: post && post._id ? (isSavedByPost[post._id] ?? post.savedBy?.includes(user?._id) ?? false): false,
+            postMentions: post.mentions || [],
+            likedByUsers: post.likedByUsers || []
+        }));
+    }, [feedPosts, isLikedByPost,isSavedByPost, user?._id]);
 
     // Check authentication first
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
+                <div className="text-center text-white">
                     <p className="text-xl mb-4">Please log in to view your feed</p>
                 </div>
             </div>
@@ -82,7 +87,7 @@ function Home() {
                     <p className="text-red-500 mb-4">Failed to load feed: {error}</p>
                     <button 
                         onClick={() => dispatch(getUserPostFeed(1))}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                     >
                         Retry
                     </button>
@@ -95,59 +100,83 @@ function Home() {
     if (feedLoading && feedPosts.length === 0) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div>Loading your feed...</div>
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-white">Loading your feed...</p>
+                </div>
             </div>
         );
     }
 
-    const cardContent = Array.isArray(feedPosts)
-        ? feedPosts.map((post, idx) => ({
-              postId: post._id,
-              postContent: post.media?.map(m => m.url),
-              postContentType : post.media.map(m => m.type),
-              username: post.owner.username,
-              profilePicture: post.owner.profilePicture,
-              postLikes: post.likes,
-              feedPostshares: post.shares,
-              postComments: post.comments,
-              postDescription: post.caption,
-              isLiked: isLikedByPost[post._id] ?? post.likedByUsers?.includes(user?._id) ?? false,
-              key: post._id ? `feed-post-${post._id}` : `fallback-feed-${post.owner}-${idx}-${Date.now()}`,
-              postMentions: post.mentions || [],
-              likedByUsers : post.likedByUsers || []
-          }))
-        : [];
+    // Footer component for infinite scroll loading
+    const Footer = () => {
+        if (!hasMoreFeed && postItems.length > 0) {
+            return (
+                <div className="text-center py-8 text-white/60">
+                    <p>You're all caught up! 🎉</p>
+                </div>
+            );
+        }
+        
+        if (feedLoading && postItems.length > 0) {
+            return (
+                <div className="flex items-center justify-center py-8 gap-2 text-white">
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading more posts...</span>
+                </div>
+            );
+        }
+        
+        return null;
+    };
+
+    // Empty state
+    if (postItems.length === 0 && !feedLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center py-8 text-white">
+                    <p className="text-xl mb-2">No posts to display</p>
+                    <p className="text-white/60">Follow some users to see their posts!</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen flex flex-row items-center justify-center" style={{ zIndex: 1 }}>
-            <div className="flex flex-col">
-                {cardContent.length > 0 ? (
-                    cardContent.map((card) => (
-                        <PostCard
-                            key={card.key}
-                            postContent={card.postContent}
-                            postContentType = {card.postContentType}
-                            postDescription={card.postDescription}
-                            postLikes={card.postLikes}
-                            postComments={card.postComments.length}
-                            postShares={card.feedPostshares}
-                            username={card.username}
-                            postId={card.postId}
-                            userProfilePicture={card.profilePicture}
-                            isLiked={card.isLiked}
-                            postMentions={card.postMentions}
-                            likedByUsers={card.likedByUsers}
-                        />
-                    ))
-                ) : (
-                    <div className="text-center py-8">
-                        <p>No posts to display. Follow some users to see their posts!</p>
+        <div className="w-full h-screen">
+            <Virtuoso
+                style={{ height: '100%' }}
+                data={postItems}
+                endReached={loadMore}
+                overscan={200}
+                itemContent={(index, post) => (
+                    <div className="flex justify-center py-4 first:pt-6 px-4">
+                        <div className="w-full max-w-2xl">
+                            <PostCard
+                                key={post.key}
+                                postContent={post.postContent}
+                                postContentType={post.postContentType}
+                                postOwnerId={post.postOwnerId}
+                                postDescription={post.postDescription}
+                                postLikes={post.postLikes}
+                                postComments={post.postComments}
+                                postShares={post.postShares}
+                                username={post.username}
+                                postId={post.postId}
+                                userProfilePicture={post.userProfilePicture}
+                                isLiked={post.isLiked}
+                                isSaved={post.isSaved}
+                                postMentions={post.postMentions}
+                                likedByUsers={post.likedByUsers}
+                            />
+                        </div>
                     </div>
                 )}
-            </div>
-            <div ref={loadMoreRef} className="h-10"></div>
-            {feedLoading && feedPosts.length > 0 && <div>Loading more posts...</div>}
-            {!hasMoreFeed && feedPosts.length > 0 && <div>No more posts to load.</div>}
+                components={{
+                    Footer
+                }}
+                increaseViewportBy={{ top: 400, bottom: 400 }}
+            />
         </div>
     );
 }

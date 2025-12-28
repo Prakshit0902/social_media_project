@@ -9,9 +9,9 @@ function DashBoardLayout() {
   const location = useLocation()
   const showExpandableCard = location.pathname === "/dashboard"
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-500">
             <div className="fixed inset-0 w-full h-full z-0">
-              <AuroraBackground>
+              {/* <AuroraBackground> */}
                 <motion.div
                   initial={{ opacity: 0.0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -24,12 +24,12 @@ function DashBoardLayout() {
                 >
 
                 </motion.div>
-              </AuroraBackground>
+              {/* </AuroraBackground> */}
             </div>
       {/* Main scrollable content area */}
-      <main className="flex-1 pb-20 md:pb-24">
         <Outlet />
-      </main>
+      {/* <main className="flex-1 pb-20 md:pb-24">
+      </main> */}
 
       {showExpandableCard && <div className="fixed top-0 right-0 z-50" >
         <ExpandableCard />

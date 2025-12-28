@@ -1,5 +1,5 @@
 import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
-import { toggleLikePost } from "./postSlice";
+import { toggleLikePost, toggleSavePost } from "./postSlice";
 import  { axiosPrivate } from "../../utils/api";
 
 const initialState = {
@@ -128,6 +128,7 @@ const feedSlice = createSlice({
                     }
                 }
             })
+            
     }
 });
 
