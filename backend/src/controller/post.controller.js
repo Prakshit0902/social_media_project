@@ -4,7 +4,7 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const toggleLike = asyncHandler(async (req,res) => {
     console.log('entering the like post ');
@@ -160,5 +160,52 @@ const createPost = asyncHandler(async (req,res) => {
     
 })
 
+const deletePost = asyncHandler(async (req,res) => {
+    const {postId} = req.params
+    const post = await Post.findById(postId)
 
-export {toggleLike,createPost,toggleSave}
+    if (!post) {
+        throw new ApiError(404,'No such post exist')
+    }
+
+    if (!post.owner.equals(req.user?._id)){
+        throw new ApiError(401,'Your are not authenticated to modify this post')
+    }
+    await User.findByIdAndUpdate(req.user?._id,{
+        $pull : {
+            posts : postId
+        }
+    })
+
+    await User.updateMany(
+        {
+            $or : [
+                {likedPosts : postId},
+                {savedPosts : postId}
+            ]
+        },
+        {
+            $pull : {
+                likedPosts : postId,
+                savedPosts : postId
+            }
+        }
+    )
+
+    if (post.media?.url){
+        await deleteFromCloudinary(post.media.url)
+    }
+
+    const del = await Post.deleteOne({_id : postId})
+
+    if (!del.acknowledged){
+        throw new ApiError(500,'Could not delete post')
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200,del,'Post deleted successfully')
+    )
+    
+})
+
+export {toggleLike,createPost,toggleSave,deletePost}
