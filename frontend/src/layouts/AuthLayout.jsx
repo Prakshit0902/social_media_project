@@ -96,8 +96,8 @@ export default function AuthLayout() {
             className="text-center mb-8 lg:mb-0 lg:absolute lg:top-8 lg:left-8"
           >
             <div className="inline-flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
-                <IconSparkles className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-flex items-center justify-center">
+                <img src="/logo.png" alt="Synapse" className="w-16 h-16 object-cover" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                 Synapse

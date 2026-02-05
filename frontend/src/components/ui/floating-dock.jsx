@@ -2,7 +2,6 @@
 import { useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "motion/react";
 import { cn } from "../../lib/utils";
-import { IconSparkles } from "@tabler/icons-react";
 
 export const FloatingDock = ({
   items,
@@ -84,8 +83,8 @@ const FloatingDockDesktop = ({
       {/* Logo/Brand Section */}
       <div className="p-5 border-b border-white/5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-            <IconSparkles className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl  flex items-baseline justify-center flex-shrink-0">
+            <img src="/logo.png" alt="Synapse" className="w-16 h-16 object-cover" />
           </div>
           <AnimatePresence>
             {isExpanded && (

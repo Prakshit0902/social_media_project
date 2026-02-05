@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import { approveFollowRequest, changePassword, exploreSection, followAnUser, getCurrentUser, getLikedPosts, getSavedPosts, getUserProfile, getUserProfilesById, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, postFeeds, refreshAccessToken, registerBasicUserDetails, registerUser, rejectFollowRequest, searchUsers, unfollowAnUser, updateAccountDetails } from '../../controller/user.controller.js'
+import { approveFollowRequest, changePassword, exploreSection, followAnUser, getCurrentUser, getLikedPosts, getSavedPosts, getUserProfile, getUserProfilesById, getUserSuggestions, loginUser, logoutUser, makeProfilePrivateOrPublic, makeProfileVerified, postFeeds, refreshAccessToken, registerBasicUserDetails, registerUser, rejectFollowRequest, searchUsers, unfollowAnUser, updateAccountDetails } from '../../controller/user.controller.js'
 import { verifyJWT } from '../../middlewares/auth.middleware.js'    
 import {upload} from "../../middlewares/multer.middleware.js"
 
@@ -37,6 +37,7 @@ router.route('/explore').get(verifyJWT,exploreSection)
 router.route('/post-feed').get(verifyJWT,postFeeds)
 router.route('/liked-posts').get(verifyJWT,getLikedPosts)
 router.route('/saved-posts').get(verifyJWT,getSavedPosts)
+router.route('/suggestions').get(verifyJWT, getUserSuggestions)
 
 router.get("/search", verifyJWT, searchUsers);
 

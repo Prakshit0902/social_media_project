@@ -869,6 +869,47 @@ const getSavedPosts = asyncHandler(
     }
 )
 
+const getUserSuggestions = asyncHandler(async (req, res) => {
+    const limit = parseInt(req.query.limit) || 5;
+    const currentUserId = req.user._id;
+    const currentUserFollowing = req.user.following || [];
+
+    // Exclude current user and users already followed
+    const excludeIds = [currentUserId, ...currentUserFollowing];
+
+    const suggestions = await User.aggregate([
+        {
+            $match: {
+                _id: { $nin: excludeIds.map(id => new mongoose.Types.ObjectId(id)) }
+            }
+        },
+        { $sample: { size: limit } },
+        {
+            $addFields: {
+                followersCount: { $size: { $ifNull: ['$followers', []] } },
+                postsCount: { $size: { $ifNull: ['$posts', []] } }
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                username: 1,
+                fullname: 1,
+                profilePicture: 1,
+                bio: 1,
+                isVerified: 1,
+                followersCount: 1,
+                postsCount: 1
+            }
+        }
+    ]);
+
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    return res.status(200).json(
+        new ApiResponse(200, suggestions, 'User suggestions fetched successfully')
+    );
+})
+
 export {registerUser,
     registerBasicUserDetails,
     loginUser,
@@ -889,4 +930,5 @@ export {registerUser,
     postFeeds,
     searchUsers,
     getLikedPosts,
-    getSavedPosts}
+    getSavedPosts,
+    getUserSuggestions}

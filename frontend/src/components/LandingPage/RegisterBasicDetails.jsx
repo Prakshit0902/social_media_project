@@ -7,7 +7,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearTransition, registerBasicUserDetails } from "../../store/slices/authSlice"; 
 import { LabelInputContainer } from "./SignUpForm";
-import { IconUserCircle, IconUpload, IconCamera, IconArrowRight, IconLoader2, IconSparkles } from "@tabler/icons-react";
+import { IconUserCircle, IconUpload, IconCamera, IconArrowRight, IconLoader2 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 
 export function RegisterBasicDetails() {
@@ -74,8 +74,8 @@ export function RegisterBasicDetails() {
     >
       {/* Header */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 mb-4">
-          <IconSparkles className="w-6 h-6 text-emerald-400" />
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 mb-4 overflow-hidden">
+          <img src="/logo.png" alt="Synapse" className="w-8 h-8 object-contain" />
         </div>
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
           Almost There!

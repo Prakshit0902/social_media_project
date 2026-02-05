@@ -1,5 +1,4 @@
 // LoadingScreen.jsx
-import { IconSparkles } from "@tabler/icons-react";
 
 export const LoadingScreen = ({ message = "Loading..." }) => (
   <div className="w-full h-screen flex items-center justify-center bg-neutral-950">
@@ -10,8 +9,8 @@ export const LoadingScreen = ({ message = "Loading..." }) => (
     <div className="relative z-10 text-center">
       {/* Animated logo */}
       <div className="relative mb-6">
-        <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center animate-pulse">
-          <IconSparkles className="w-8 h-8 text-white" />
+        <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center animate-pulse overflow-hidden">
+          <img src="/logo.png" alt="Synapse" className="w-10 h-10 object-contain" />
         </div>
         {/* Glow effect */}
         <div className="absolute inset-0 w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 blur-xl opacity-50 animate-pulse" />

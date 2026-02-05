@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getUserPostFeed, resetFeedPage } from "../../store/slices/feedSlice";
 import { initializeLikedStatus, initializeSavedStatus } from "../../store/slices/postSlice";
 import { Virtuoso } from 'react-virtuoso';
+import { ExpandableCard } from "../UserSuggestionSidebar/ExpandableCard";
 
 function Home() {
     const dispatch = useDispatch();
@@ -166,40 +167,48 @@ function Home() {
     }
 
     return (
-        <div className="w-full h-screen">
-            <Virtuoso
-                style={{ height: '100%' }}
-                data={postItems}
-                endReached={loadMore}
-                overscan={200}
-                itemContent={(index, post) => (
-                    <div className="flex justify-center py-4 first:pt-6 px-4">
-                        <div className="w-full max-w-2xl">
-                            <PostCard
-                                key={post.key}
-                                postContent={post.postContent}
-                                postContentType={post.postContentType}
-                                postOwnerId={post.postOwnerId}
-                                postDescription={post.postDescription}
-                                postLikes={post.postLikes}
-                                postComments={post.postComments}
-                                postShares={post.postShares}
-                                username={post.username}
-                                postId={post.postId}
-                                userProfilePicture={post.userProfilePicture}
-                                isLiked={post.isLiked}
-                                isSaved={post.isSaved}
-                                postMentions={post.postMentions}
-                                likedByUsers={post.likedByUsers}
-                            />
+        <div className="w-full h-screen flex">
+            {/* Main Feed - Scrollable with hidden scrollbar */}
+            <div className="flex-1 h-full overflow-hidden feed-container">
+                <Virtuoso
+                    style={{ height: '100%' }}
+                    data={postItems}
+                    endReached={loadMore}
+                    overscan={200}
+                    itemContent={(index, post) => (
+                        <div className="flex justify-center py-4 first:pt-6 px-4">
+                            <div className="w-full max-w-2xl">
+                                <PostCard
+                                    key={post.key}
+                                    postContent={post.postContent}
+                                    postContentType={post.postContentType}
+                                    postOwnerId={post.postOwnerId}
+                                    postDescription={post.postDescription}
+                                    postLikes={post.postLikes}
+                                    postComments={post.postComments}
+                                    postShares={post.postShares}
+                                    username={post.username}
+                                    postId={post.postId}
+                                    userProfilePicture={post.userProfilePicture}
+                                    isLiked={post.isLiked}
+                                    isSaved={post.isSaved}
+                                    postMentions={post.postMentions}
+                                    likedByUsers={post.likedByUsers}
+                                />
+                            </div>
                         </div>
-                    </div>
-                )}
-                components={{
-                    Footer
-                }}
-                increaseViewportBy={{ top: 400, bottom: 400 }}
-            />
+                    )}
+                    components={{
+                        Footer
+                    }}
+                    increaseViewportBy={{ top: 400, bottom: 400 }}
+                />
+            </div>
+            
+            {/* Right Sidebar - User Suggestions (fixed with scrollbar on right) */}
+            <div className="hidden lg:flex flex-col w-80 h-full border-l border-white/5 pt-6 px-4 overflow-y-auto sidebar-scroll-right">
+                <ExpandableCard />
+            </div>
         </div>
     );
 }
