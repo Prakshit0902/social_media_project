@@ -226,6 +226,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.user = action.payload.data;
+        state.isTransitioning = false;
       })
       .addCase(registerBasicUserDetails.rejected, (state, action) => {
         state.loading = false;

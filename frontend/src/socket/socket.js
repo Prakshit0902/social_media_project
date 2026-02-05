@@ -16,9 +16,7 @@ connect() {
     }
 
     // Environment-based Socket URL
-    const SOCKET_URL = import.meta.env.VITE_API_URL 
-        ? import.meta.env.VITE_API_URL.replace('/api', '')  // Remove /api if present
-        : 'http://localhost:3000';
+    const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
     
     console.log('Connecting to socket:', SOCKET_URL);
 
