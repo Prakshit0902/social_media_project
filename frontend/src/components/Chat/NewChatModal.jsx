@@ -118,7 +118,7 @@ export const NewChatModal = ({ isOpen, onClose }) => {
                             onClick={() => setIsGroupMode(false)}
                             className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
                                 !isGroupMode 
-                                    ? 'bg-blue-500 text-white' 
+                                    ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white' 
                                     : 'bg-white/10 text-white/60 hover:bg-white/20'
                             }`}
                         >
@@ -128,7 +128,7 @@ export const NewChatModal = ({ isOpen, onClose }) => {
                             onClick={() => setIsGroupMode(true)}
                             className={`flex-1 py-2 px-4 rounded-lg transition-colors ${
                                 isGroupMode 
-                                    ? 'bg-blue-500 text-white' 
+                                    ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white' 
                                     : 'bg-white/10 text-white/60 hover:bg-white/20'
                             }`}
                         >
@@ -145,7 +145,7 @@ export const NewChatModal = ({ isOpen, onClose }) => {
                                 value={groupName}
                                 onChange={(e) => setGroupName(e.target.value)}
                                 placeholder="Group name"
-                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                             />
                         </div>
                     )}
@@ -159,7 +159,7 @@ export const NewChatModal = ({ isOpen, onClose }) => {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search users..."
-                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                             />
                         </div>
                     </div>
@@ -173,7 +173,7 @@ export const NewChatModal = ({ isOpen, onClose }) => {
                                         key={user._id}
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
-                                        className="flex items-center gap-2 bg-blue-500/20 px-3 py-1 rounded-full"
+                                        className="flex items-center gap-2 bg-emerald-500/20 px-3 py-1 rounded-full"
                                     >
                                         <img 
                                             src={user.profilePicture || `https://ui-avatars.com/api/?name=${user.username}`} 
@@ -207,7 +207,7 @@ export const NewChatModal = ({ isOpen, onClose }) => {
                                         key={user._id}
                                         onClick={() => handleSelectUser(user)}
                                         className={`w-full flex items-center p-4 hover:bg-white/10 transition-colors ${
-                                            isSelected ? 'bg-blue-500/20' : ''
+                                            isSelected ? 'bg-emerald-500/20' : ''
                                         }`}
                                         whileHover={{ x: 5 }}
                                     >
@@ -221,7 +221,7 @@ export const NewChatModal = ({ isOpen, onClose }) => {
                                             <p className="text-white/50 text-sm">{user.fullName || user.email}</p>
                                         </div>
                                         {isSelected && (
-                                            <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
                                                 <IconCheck size={14} className="text-white" />
                                             </div>
                                         )}
@@ -240,7 +240,7 @@ export const NewChatModal = ({ isOpen, onClose }) => {
                         <div className="p-4 border-t border-white/10">
                             <button
                                 onClick={() => handleCreateChat()}
-                                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                                className="w-full py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white rounded-lg font-medium transition-all"
                             >
                                 Create Group ({selectedUsers.length} members)
                             </button>

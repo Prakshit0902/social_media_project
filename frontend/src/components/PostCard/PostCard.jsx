@@ -560,15 +560,15 @@ const PostCardComponent = ({
   return (
     <>
       <div className="inter-var w-full">
-        <div className="bg-white relative dark:bg-black dark:border-white/[0.2] border-black/[0.1] w-full max-w-xl mx-auto h-auto rounded-2xl p-6 border shadow-sm hover:shadow-md transition-shadow duration-300">
+        <div className="bg-neutral-900/80 backdrop-blur-sm relative border-white/[0.08] w-full max-w-xl mx-auto h-auto rounded-2xl p-6 border shadow-lg hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300">
           {/* Header */}
-          <div className="flex flex-row items-center text-neutral-700 dark:text-white mb-4">
+          <div className="flex flex-row items-center text-white mb-4">
             <img
               src={userProfilePicture}
               height="40"
               width="40"
               alt="profile"
-              className="mr-3 rounded-full object-cover ring-2 ring-gray-100"
+              className="mr-3 rounded-full object-cover ring-2 ring-emerald-500/30"
             />
             <p
               className="font-semibold text-base cursor-pointer"
@@ -581,11 +581,11 @@ const PostCardComponent = ({
             <div className="ml-auto relative">
               <motion.button
                 onClick={() => setShowPostMenu(!showPostMenu)}
-                className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full p-2 transition-colors"
+                className="cursor-pointer hover:bg-white/10 rounded-full p-2 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <IconDots size={20} />
+                <IconDots size={20} className="text-neutral-400" />
               </motion.button>
 
               {/* Dropdown Menu */}
@@ -597,13 +597,13 @@ const PostCardComponent = ({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                    className="absolute right-0 mt-2 w-48 bg-neutral-800 rounded-lg shadow-lg border border-white/10 overflow-hidden z-50"
                   >
                     {isOwnPost && (
                       <>
                         <motion.button
                           onClick={handleEditPost}
-                          className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                          className="w-full px-4 py-3 text-left text-sm text-neutral-200 hover:bg-white/10 transition-colors flex items-center gap-2"
                           whileHover={{ x: 4 }}
                         >
                           <svg
@@ -623,7 +623,7 @@ const PostCardComponent = ({
                         </motion.button>
                         <motion.button
                           onClick={handleDeletePost}
-                          className="w-full px-4 py-3 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
+                          className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
                           whileHover={{ x: 4 }}
                         >
                           <svg
@@ -643,12 +643,12 @@ const PostCardComponent = ({
                           </svg>
                           Delete Post
                         </motion.button>
-                        <div className="border-t border-gray-200 dark:border-gray-700"></div>
+                        <div className="border-t border-white/10"></div>
                       </>
                     )}
                     <motion.button
                       onClick={handleViewProfile}
-                      className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-3 text-left text-sm text-neutral-200 hover:bg-white/10 transition-colors flex items-center gap-2"
                       whileHover={{ x: 4 }}
                     >
                       <svg
@@ -705,9 +705,9 @@ const PostCardComponent = ({
                     {/* Loading skeleton */}
                     {!loadedImages.has(currentImageIndex) &&
                       contentTypes[currentImageIndex] !== 'video' && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 gap-3">
-                          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-800 gap-3">
+                          <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+                          <p className="text-sm text-neutral-400">
                             Loading image...
                           </p>
                         </div>
@@ -806,8 +806,8 @@ const PostCardComponent = ({
                       height: index === currentImageIndex ? 8 : 6,
                       backgroundColor:
                         index === currentImageIndex
-                          ? '#3b82f6'
-                          : 'rgba(255, 255, 255, 0.7)',
+                          ? '#10b981'
+                          : 'rgba(255, 255, 255, 0.5)',
                     }}
                     whileHover={{ scale: 1.2 }}
                     aria-label={`Go to image ${index + 1}`}
@@ -820,7 +820,7 @@ const PostCardComponent = ({
           {/* Actions and Description ... */}
           {/* ... (rest of the component is unchanged) ... */}
           <div>
-            <div className="flex flex-row mt-4 text-neutral-600 dark:text-neutral-300 justify-between">
+            <div className="flex flex-row mt-4 text-neutral-300 justify-between">
               <div className="flex flex-row gap-4">
                 <div className="flex flex-row items-center" ref={likeButtonRef}>
                   <motion.button
@@ -831,9 +831,9 @@ const PostCardComponent = ({
                     whileTap={{ scale: 0.95 }}
                   >
                     {liked ? (
-                      <IconHeartFilled className="text-red-500 transition-all duration-200 w-6 h-6" />
+                      <IconHeartFilled className="text-rose-500 transition-all duration-200 w-6 h-6" />
                     ) : (
-                      <IconHeart className="text-neutral-600 dark:text-neutral-300 hover:text-red-500 transition-colors duration-150 w-6 h-6" />
+                      <IconHeart className="text-neutral-400 hover:text-rose-500 transition-colors duration-150 w-6 h-6" />
                     )}
                   </motion.button>
                   <motion.span
@@ -848,7 +848,7 @@ const PostCardComponent = ({
 
                 <motion.button
                   ref={commentButtonRef}
-                  className="flex items-center hover:text-neutral-800 dark:hover:text-neutral-100 transition-colors duration-150"
+                  className="flex items-center text-neutral-400 hover:text-emerald-400 transition-colors duration-150"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCommentButtonClick}
@@ -878,7 +878,7 @@ const PostCardComponent = ({
                   <motion.button
                     ref={mentionButtonRef}
                     onClick={handleShowMentions}
-                    className="flex items-center hover:text-neutral-800 dark:hover:text-neutral-100 transition-colors duration-150"
+                    className="flex items-center text-neutral-400 hover:text-cyan-400 transition-colors duration-150"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -897,18 +897,18 @@ const PostCardComponent = ({
                 whileTap={{ scale: 0.95 }}
               >
                 {saved ? (
-                  <IconBookmarkFilled className="text-neutral-800 dark:text-white transition-all duration-200 w-6 h-6" />
+                  <IconBookmarkFilled className="text-emerald-400 transition-all duration-200 w-6 h-6" />
                 ) : (
-                  <IconBookmark className="text-neutral-600 dark:text-neutral-300 hover:text-neutral-800 dark:hover:text-white transition-colors duration-150 w-6 h-6" />
+                  <IconBookmark className="text-neutral-400 hover:text-emerald-400 transition-colors duration-150 w-6 h-6" />
                 )}
               </motion.button>
             </div>
           </div>
 
           {postDescription && (
-            <p className="text-neutral-700 text-sm mt-3 dark:text-neutral-300 leading-relaxed line-clamp-2 hover:line-clamp-none transition-all duration-200">
+            <p className="text-neutral-300 text-sm mt-3 leading-relaxed line-clamp-2 hover:line-clamp-none transition-all duration-200">
               <span
-                className="font-semibold mr-2 cursor-pointer"
+                className="font-semibold mr-2 cursor-pointer text-white hover:text-emerald-400 transition-colors"
                 onClick={usernameClicked}
               >
                 {username}
@@ -963,19 +963,19 @@ const PostCardComponent = ({
                   stiffness: 300,
                 }}
               >
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-[90vw] sm:w-full max-h-[80vh] overflow-hidden shadow-2xl">
+                <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 max-w-sm w-[90vw] sm:w-full max-h-[80vh] overflow-hidden shadow-2xl">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                     className="flex justify-between items-center mb-4"
                   >
-                    <h3 className="text-lg font-semibold dark:text-white">
+                    <h3 className="text-lg font-semibold text-white">
                       Mentions
                     </h3>
                     <motion.button
                       onClick={() => setShowMentions(false)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      className="text-neutral-400 hover:text-white"
                       whileHover={{ scale: 1.1, rotate: 90 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -991,7 +991,7 @@ const PostCardComponent = ({
                     {postMentions.map((mention, index) => (
                       <motion.div
                         key={index}
-                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                        className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.05 * index }}
@@ -1001,14 +1001,14 @@ const PostCardComponent = ({
                         <motion.img
                           src={mention.profilePicture || '/default-avatar.png'}
                           alt={mention.username}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-emerald-500/30"
                           whileHover={{ scale: 1.1 }}
                         />
                         <div>
-                          <p className="font-medium dark:text-white">
+                          <p className="font-medium text-white">
                             {mention.fullname}
                           </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-neutral-400">
                             @{mention.handle || mention.username}
                           </p>
                         </div>
@@ -1072,19 +1072,19 @@ const PostCardComponent = ({
                   stiffness: 300,
                 }}
               >
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-[90vw] sm:w-full max-h-[80vh] overflow-hidden shadow-2xl">
+                <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 max-w-sm w-[90vw] sm:w-full max-h-[80vh] overflow-hidden shadow-2xl">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                     className="flex justify-between items-center mb-4"
                   >
-                    <h3 className="text-lg font-semibold dark:text-white">
+                    <h3 className="text-lg font-semibold text-white">
                       Likes
                     </h3>
                     <motion.button
                       onClick={() => setShowLikes(false)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      className="text-neutral-400 hover:text-white"
                       whileHover={{ scale: 1.1, rotate: 90 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1101,7 +1101,7 @@ const PostCardComponent = ({
                       likedByUsers.map((user, index) => (
                         <motion.div
                           key={index}
-                          className="flex items-center justify-between space-x-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          className="flex items-center justify-between space-x-3 p-2 rounded-lg hover:bg-white/5 transition-colors"
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.05 * index }}
@@ -1111,14 +1111,14 @@ const PostCardComponent = ({
                           <motion.img
                             src={user.profilePicture || '/default-avatar.png'}
                             alt={user.username}
-                            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                            className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-emerald-500/30"
                             whileHover={{ scale: 1.1 }}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium dark:text-white truncate">
+                            <p className="font-medium text-white truncate">
                               {user.fullname}
                             </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 ">
+                            <p className="text-sm text-neutral-400">
                               @{user.handle || user.username}
                             </p>
                           </div>
@@ -1130,7 +1130,7 @@ const PostCardComponent = ({
                         </motion.div>
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                      <p className="text-center text-neutral-400 py-4">
                         No likes yet
                       </p>
                     )}

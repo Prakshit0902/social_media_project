@@ -16,32 +16,32 @@ const features = [
   {
     icon: IconUsers,
     title: "Connect",
-    description: "Build meaningful connections with people who share your interests"
+    description: "Build connections with 200+ users sharing your interests"
   },
   {
     icon: IconMessageCircle,
-    title: "Chat",
-    description: "Real-time messaging with friends and communities"
+    title: "Real-time Chat",
+    description: "Instant messaging with typing indicators & read receipts"
   },
   {
     icon: IconPhoto,
     title: "Share",
-    description: "Share your moments with stunning photos and videos"
+    description: "Share moments with optimized, virtualized feed rendering"
   },
   {
     icon: IconHeart,
     title: "Engage",
-    description: "Like, comment, and interact with content you love"
+    description: "Join 20K+ interactions - like, comment, and connect"
   },
   {
     icon: IconSparkles,
-    title: "AI Powered",
-    description: "Smart recommendations and AI-assisted features"
+    title: "Gemini AI",
+    description: "AI-powered chatbot for intelligent conversations"
   },
   {
     icon: IconShield,
     title: "Secure",
-    description: "Your privacy and security are our top priority"
+    description: "JWT authentication with encrypted data protection"
   }
 ];
 
@@ -150,16 +150,16 @@ export default function AuthLayout() {
                   className="flex justify-center lg:justify-start gap-8 mb-10"
                 >
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-white">10M+</div>
+                    <div className="text-3xl font-bold text-white">200+</div>
                     <div className="text-neutral-400 text-sm">Active Users</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-white">50M+</div>
+                    <div className="text-3xl font-bold text-white">2,000+</div>
                     <div className="text-neutral-400 text-sm">Posts Shared</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-white">100+</div>
-                    <div className="text-neutral-400 text-sm">Countries</div>
+                    <div className="text-3xl font-bold text-white">20K+</div>
+                    <div className="text-neutral-400 text-sm">Interactions</div>
                   </div>
                 </motion.div>
               )}

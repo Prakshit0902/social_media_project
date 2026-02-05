@@ -32,7 +32,7 @@ const ChatListItem = ({ chat, onSelect, isActive }) => {
         <motion.div
             onClick={() => onSelect(chat._id)}
             className={`flex items-center p-3 rounded-xl cursor-pointer transition-colors ${
-                isActive ? 'bg-blue-500/20' : 'hover:bg-white/10'
+                isActive ? 'bg-emerald-500/20' : 'hover:bg-white/10'
             }`}
             whileTap={{ scale: 0.98 }}
             layout
@@ -52,7 +52,7 @@ const ChatListItem = ({ chat, onSelect, isActive }) => {
                         {lastMessagePrefix}{lastMessageContent}
                     </p>
                     {unreadCount > 0 && (
-                        <span className="bg-blue-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0">
+                        <span className="bg-emerald-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0">
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                     )}
@@ -89,7 +89,10 @@ export const ChatList = ({ onSelectChat, activeChatId }) => {
     if (loading && chats.length === 0) {
         return (
             <div className="w-full h-full flex items-center justify-center backdrop-blur-2xl bg-black/30 rounded-3xl">
-                <div className="text-white/50">Loading chats...</div>
+                <div className="flex items-center gap-3 text-white/50">
+                    <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+                    <span>Loading chats...</span>
+                </div>
             </div>
         );
     }
@@ -124,7 +127,7 @@ export const ChatList = ({ onSelectChat, activeChatId }) => {
                         placeholder="Search..." 
                         value={searchQuery} 
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" 
+                        className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" 
                     />
                 </div>
             </div>

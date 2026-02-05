@@ -53,7 +53,7 @@ const MessageStatus = ({ message, participants, currentUserId }) => {
         message.readBy?.some(rb => rb.userId === participant._id)
     );
     
-    return <IconChecks size={14} className={allRead ? "text-blue-400" : "text-white/50"} />;
+    return <IconChecks size={14} className={allRead ? "text-emerald-400" : "text-white/50"} />;
 };
 
 // Reply Preview Component
@@ -65,11 +65,11 @@ const ReplyPreview = ({ replyingTo, onCancel }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 border-l-4 border-blue-500"
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 border-l-4 border-emerald-500"
         >
-                        <IconArrowBackUp size={18} className="text-blue-500" />
+                        <IconArrowBackUp size={18} className="text-emerald-500" />
             <div className="flex-1">
-                <p className="text-xs text-blue-400">{replyingTo.sender.username}</p>
+                <p className="text-xs text-emerald-400">{replyingTo.sender.username}</p>
                 <p className="text-sm text-white/60 truncate">
                     {replyingTo.messageType === 'text' ? replyingTo.content : `[${replyingTo.messageType}]`}
                 </p>
@@ -260,7 +260,7 @@ const MessageBubble = ({ message, isSentByMe, showSender = false, participants, 
                 <div className={`flex items-end gap-2 max-w-xs md:max-w-md`}>
                     <div className={`p-3 rounded-2xl ${
                         isSentByMe 
-                            ? 'bg-blue-500 text-white rounded-br-lg' 
+                            ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-br-lg' 
                             : 'bg-white/10 text-white/90 rounded-bl-lg'
                     }`}>
                         {message.isDeleted ? (
@@ -277,7 +277,7 @@ const MessageBubble = ({ message, isSentByMe, showSender = false, participants, 
                         )}
                         <div className="flex items-center gap-2 mt-1">
                             <p className={`text-xs ${
-                                isSentByMe ? 'text-blue-100' : 'text-white/50'
+                                isSentByMe ? 'text-white/80' : 'text-white/50'
                             }`}>
                                 {timeAgo}
                             </p>
@@ -709,7 +709,7 @@ useEffect(() => {
                                 placeholder="Search messages..."
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                             />
                         </div>
                     </motion.div>
@@ -725,10 +725,10 @@ useEffect(() => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-blue-500/20 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg border-2 border-dashed border-blue-500"
+                            className="absolute inset-0 bg-emerald-500/20 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg border-2 border-dashed border-emerald-500"
                         >
                             <div className="text-center">
-                                <IconFile size={48} className="text-blue-500 mx-auto mb-2" />
+                                <IconFile size={48} className="text-emerald-500 mx-auto mb-2" />
                                 <p className="text-white font-medium">Drop files here to send</p>
                             </div>
                         </motion.div>
@@ -825,12 +825,12 @@ useEffect(() => {
                             handleTyping();
                         }}
                         placeholder={editingMessage ? "Edit your message..." : "Type a message..."}
-                        className="w-full bg-white/5 border border-transparent rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                        className="w-full bg-white/5 border border-transparent rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                     />
                     <motion.button
                         type="submit"
                         whileTap={{ scale: 0.95 }}
-                        className="p-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 transition-colors disabled:bg-blue-500/50 disabled:cursor-not-allowed"
+                        className="p-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={!newMessage.trim()}
                     >
                         <IconSend size={22} className="text-white"/>

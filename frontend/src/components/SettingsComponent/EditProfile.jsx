@@ -87,7 +87,7 @@ export const EditProfile = () => {
                   alt="Profile"
                   className="w-24 h-24 rounded-full object-cover bg-black/20"
                 />
-                <label htmlFor="profilePictureInput" className="absolute -bottom-1 -right-1 p-2 bg-blue-500 rounded-full cursor-pointer hover:bg-blue-600 transition-colors">
+                <label htmlFor="profilePictureInput" className="absolute -bottom-1 -right-1 p-2 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full cursor-pointer hover:from-emerald-600 hover:to-cyan-600 transition-all">
                   <IconCamera size={18} className="text-black"/>
                 </label>
                 <input id="profilePictureInput" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
@@ -102,17 +102,17 @@ export const EditProfile = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="relative">
                 <IconUser className="absolute top-1/2 -translate-y-1/2 left-3 text-white/40" size={20} />
-                <input type="text" name="fullname" value={formData.fullname} onChange={handleInputChange} placeholder="Full Name" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
+                <input type="text" name="fullname" value={formData.fullname} onChange={handleInputChange} placeholder="Full Name" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" />
               </div>
               <div className="relative">
                 <IconAt className="absolute top-1/2 -translate-y-1/2 left-3 text-white/40" size={20} />
-                <input type="text" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
+                <input type="text" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" />
               </div>
             </div>
             
             <div className="relative">
               <IconNotebook className="absolute top-4 left-3 text-white/40" size={20} />
-              <textarea name="bio" value={formData.bio} onChange={handleInputChange} placeholder="Your Bio" rows="4" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none">
+              <textarea name="bio" value={formData.bio} onChange={handleInputChange} placeholder="Your Bio" rows="4" className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all resize-none">
               </textarea>
             </div>
 
@@ -120,11 +120,11 @@ export const EditProfile = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="relative">
                 <IconCake className="absolute top-1/2 -translate-y-1/2 left-3 text-white/40" size={20} />
-                <input type="date" name="dob" value={formData.dob} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white/80 placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
+                <input type="date" name="dob" value={formData.dob} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white/80 placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" />
               </div>
               <div className="relative">
                  {formData.gender === 'female' ? <IconGenderFemale className="absolute top-1/2 -translate-y-1/2 left-3 text-white/40" size={20}/> : <IconGenderMale className="absolute top-1/2 -translate-y-1/2 left-3 text-white/40" size={20}/> }
-                <select name="gender" value={formData.gender} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white/80 placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all appearance-none">
+                <select name="gender" value={formData.gender} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white/80 placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all appearance-none">
                   <option value="" disabled>Select Gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>

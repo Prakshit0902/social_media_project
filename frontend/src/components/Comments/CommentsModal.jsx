@@ -337,7 +337,7 @@ const CommentsModal = ({
                 className={`${isReply ? 'ml-12 mt-3' : ''} ${isOptimistic ? 'relative' : ''}`}
             >
                 {isOptimistic && (
-                    <div className="absolute -left-2 top-0 bottom-0 w-1 bg-blue-400 rounded-full" />
+                    <div className="absolute -left-2 top-0 bottom-0 w-1 bg-emerald-400 rounded-full" />
                 )}
                 {comment.isDeleted ? (
                     <div className="text-sm italic text-gray-500 dark:text-gray-400 p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
@@ -406,7 +406,7 @@ const CommentsModal = ({
                                                 <div className="flex space-x-1 ml-2">
                                                     <motion.button
                                                         onClick={() => startEdit(comment)}
-                                                        className="text-gray-400 hover:text-blue-500"
+                                                        className="text-gray-400 hover:text-emerald-500"
                                                         whileHover={{ scale: 1.1 }}
                                                         whileTap={{ scale: 0.9 }}
                                                     >
@@ -470,7 +470,7 @@ const CommentsModal = ({
                                                 <>
                                                     <motion.button
                                                         onClick={() => startReply(comment)}
-                                                        className="flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+                                                        className="flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400"
                                                         whileHover={{ scale: 1.1 }}
                                                         whileTap={{ scale: 0.9 }}
                                                     >
@@ -482,7 +482,7 @@ const CommentsModal = ({
                                                     {hasReplies && (
                                                         <motion.button
                                                             onClick={() => toggleReplies(comment._id)}
-                                                            className="flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+                                                            className="flex items-center text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400"
                                                             whileHover={{ scale: 1.05 }}
                                                             whileTap={{ scale: 0.95 }}
                                                         >
@@ -643,14 +643,14 @@ const CommentsModal = ({
                                     <motion.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
-                                        className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-between"
+                                        className="mb-3 p-2 bg-emerald-500/10 rounded-lg flex items-center justify-between"
                                     >
-                                        <span className="text-sm text-blue-600 dark:text-blue-400">
+                                        <span className="text-sm text-emerald-400">
                                             Replying to @{replyingTo.user?.username}
                                         </span>
                                         <motion.button
                                             onClick={() => setReplyingTo(null)}
-                                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800"
+                                            className="text-emerald-400 hover:text-emerald-300"
                                             whileHover={{ scale: 1.1 }}
                                             whileTap={{ scale: 0.9 }}
                                         >
@@ -671,13 +671,13 @@ const CommentsModal = ({
                                         value={newComment} 
                                         onChange={(e) => setNewComment(e.target.value)} 
                                         placeholder={replyingTo ? "Write a reply..." : "Add a comment..."} 
-                                        className="flex-1 bg-gray-100 dark:bg-gray-700 border-none rounded-full px-4 py-2 focus:ring-2 focus:ring-blue-500 dark:text-white outline-none transition" 
+                                        className="flex-1 bg-neutral-800 border border-white/10 rounded-full px-4 py-2 focus:ring-2 focus:ring-emerald-500 text-white outline-none transition" 
                                     />
                                     <motion.button 
                                         type="submit" 
                                         disabled={!newComment.trim()} 
                                         className="p-2 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed" 
-                                        style={{ background: newComment.trim() ? 'linear-gradient(to right, #3b82f6, #06b6d4)' : '#6b7280' }} 
+                                        style={{ background: newComment.trim() ? 'linear-gradient(to right, #10b981, #06b6d4)' : '#6b7280' }} 
                                         whileHover={{ scale: 1.1 }} 
                                         whileTap={{ scale: 0.9 }}
                                     >

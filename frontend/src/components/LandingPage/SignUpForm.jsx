@@ -3,7 +3,7 @@ import React, { useCallback, useState } from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { cn } from "../../lib/utils";
-import { IconEye, IconEyeOff, IconBrandGoogle, IconBrandGithub, IconArrowRight, IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
+import { IconEye, IconEyeOff, IconArrowRight, IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCurrentUser, signupUser } from "../../store/slices/authSlice";
@@ -227,34 +227,6 @@ export function SignUpForm() {
           </span>
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
-
-        {/* Divider */}
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10"></div>
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="px-4 bg-black/40 text-neutral-500">or sign up with</span>
-          </div>
-        </div>
-
-        {/* Social signup buttons */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 h-11 rounded-xl bg-white/5 border border-white/10 text-neutral-300 text-sm font-medium hover:bg-white/10 hover:border-white/20 transition-all"
-          >
-            <IconBrandGoogle size={18} />
-            Google
-          </button>
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 h-11 rounded-xl bg-white/5 border border-white/10 text-neutral-300 text-sm font-medium hover:bg-white/10 hover:border-white/20 transition-all"
-          >
-            <IconBrandGithub size={18} />
-            GitHub
-          </button>
-        </div>
 
         {/* Sign in link */}
         <p className="text-center text-neutral-400 text-sm mt-6">

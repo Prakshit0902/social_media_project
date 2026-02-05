@@ -175,7 +175,7 @@ export const CreatePost = () => {
               <div
                 className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
                   isDragOver 
-                    ? 'border-blue-500 bg-blue-500/10' 
+                    ? 'border-emerald-500 bg-emerald-500/10' 
                     : 'border-white/20 hover:border-white/40'
                 }`}
                 onDrop={handleDrop}
@@ -194,7 +194,7 @@ export const CreatePost = () => {
                   />
                   <motion.span
                     whileTap={{ scale: 0.95 }}
-                    className="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium cursor-pointer hover:bg-blue-600 transition-colors"
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white rounded-lg font-medium cursor-pointer hover:from-emerald-600 hover:to-cyan-600 transition-all"
                   >
                     Choose File
                   </motion.span>
@@ -232,9 +232,9 @@ export const CreatePost = () => {
                 {/* File Info */}
                 <div className="flex items-center gap-3 text-sm text-white/70">
                   {postType === 'image' ? (
-                    <IconPhoto size={20} className="text-green-400" />
+                    <IconPhoto size={20} className="text-emerald-400" />
                   ) : (
-                    <IconVideo size={20} className="text-blue-400" />
+                    <IconVideo size={20} className="text-cyan-400" />
                   )}
                   <span>{selectedFile.name}</span>
                   <span>({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
@@ -262,7 +262,7 @@ export const CreatePost = () => {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Write a caption for your post... Use #hashtags to categorize your content"
                   rows={4}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg py-3 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg py-3 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all resize-none"
                 />
                 <p className="text-white/40 text-xs mt-1">
                   Hashtags in your caption will be automatically detected (e.g., #nature #photography)
@@ -280,7 +280,7 @@ export const CreatePost = () => {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="Add a location..."
-                  className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                 />
               </div>
 
@@ -295,7 +295,7 @@ export const CreatePost = () => {
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="Add extra tags separated by commas..."
-                  className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                 />
                 <p className="text-white/40 text-xs mt-1">
                   Example: nature, photography, sunset (# will be added automatically)
@@ -314,7 +314,7 @@ export const CreatePost = () => {
               type="submit"
               whileTap={{ scale: 0.95 }}
               disabled={!selectedFile || createPostLoading}
-              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold rounded-lg hover:from-emerald-600 hover:to-cyan-600 hover:shadow-lg hover:shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {createPostLoading ? (
                 <div className="flex items-center gap-2">

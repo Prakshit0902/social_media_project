@@ -9,7 +9,7 @@ const ToggleSwitch = ({ enabled, onChange, label }) => (
   <label className="flex items-center justify-between cursor-pointer">
     <span className="text-white/80 text-sm">{label}</span>
     <div className="relative">
-      <div className={`block w-12 h-7 rounded-full transition-colors ${enabled ? 'bg-blue-500' : 'bg-white/10'}`}></div>
+      <div className={`block w-12 h-7 rounded-full transition-colors ${enabled ? 'bg-emerald-500' : 'bg-white/10'}`}></div>
       <motion.div
         className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow-md"
         animate={{ x: enabled ? 20 : 0 }}
@@ -84,9 +84,9 @@ export const Settings = () => {
         <div className="backdrop-blur-xl bg-black/30 p-6 rounded-2xl border border-white/10">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4"><IconLock size={20}/> Change Password</h3>
           <form onSubmit={handlePasswordChange} className="space-y-4">
-            <input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData(p => ({...p, currentPassword: e.target.value}))} placeholder="Current Password" required className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
-            <input type="password" value={passwordData.newPassword} onChange={e => setPasswordData(p => ({...p, newPassword: e.target.value}))} placeholder="New Password" required className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
-            <input type="password" value={passwordData.confirmPassword} onChange={e => setPasswordData(p => ({...p, confirmPassword: e.target.value}))} placeholder="Confirm New Password" required className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
+            <input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData(p => ({...p, currentPassword: e.target.value}))} placeholder="Current Password" required className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" />
+            <input type="password" value={passwordData.newPassword} onChange={e => setPasswordData(p => ({...p, newPassword: e.target.value}))} placeholder="New Password" required className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" />
+            <input type="password" value={passwordData.confirmPassword} onChange={e => setPasswordData(p => ({...p, confirmPassword: e.target.value}))} placeholder="Confirm New Password" required className="w-full bg-white/5 border border-white/10 rounded-lg py-2.5 px-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" />
             <div className="flex justify-end">
               <motion.button type="submit" whileTap={{ scale: 0.95 }} disabled={isUpdatingPassword} className="px-5 py-2 rounded-lg text-sm font-semibold bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 transition-all">
                 {isUpdatingPassword ? 'Updating...' : 'Update Password'}
@@ -110,13 +110,13 @@ export const Settings = () => {
             {/* `makeProfileVerified` is usually an admin task, so we show it as a disabled status */}
             <div className="p-4 bg-black/20 rounded-lg flex items-center justify-between opacity-60 cursor-not-allowed">
                 <div className="flex items-center gap-3">
-                    <IconShieldCheck size={24} className={user?.isVerified ? 'text-blue-400' : 'text-white/40'}/>
+                    <IconShieldCheck size={24} className={user?.isVerified ? 'text-emerald-400' : 'text-white/40'}/>
                     <div>
                         <h4 className="font-semibold text-white">Verified Account</h4>
                         <p className="text-xs text-white/50">Verification is handled by administrators.</p>
                     </div>
                 </div>
-                <span className={`text-xs font-bold px-2 py-1 rounded-md ${user?.isVerified ? 'bg-blue-500/30 text-blue-300' : 'bg-white/10 text-white/60'}`}>
+                <span className={`text-xs font-bold px-2 py-1 rounded-md ${user?.isVerified ? 'bg-emerald-500/30 text-emerald-300' : 'bg-white/10 text-white/60'}`}>
                     {user?.isVerified ? 'Active' : 'Not Verified'}
                 </span>
             </div>

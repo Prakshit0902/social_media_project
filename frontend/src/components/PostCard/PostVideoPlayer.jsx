@@ -206,7 +206,7 @@ export function PostVideoPlayer({ src, onDoubleClick }) {
                     >
                         {/* Progress Bar */}
                         <div className="relative w-full h-1.5 bg-white/20 rounded-full cursor-pointer mb-2" onClick={handleProgressScrub}>
-                            <div className="absolute top-0 left-0 h-full bg-blue-500 rounded-full" style={{ width: `${progress}%` }}/>
+                            <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full" style={{ width: `${progress}%` }}/>
                             <div className="absolute top-1/2 left-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full" style={{ left: `${progress}%` }} />
                         </div>
 
