@@ -35,7 +35,8 @@ export const refreshAccessToken = createAsyncThunk(
   "user/refresh-access-token",
   async (_,{rejectWithValue}) => {
     try {
-      const response = await axiosPublic.post('/api/v1/user/refresh-access-token')
+      // Must use withCredentials to send cookies (refresh token) in cross-origin production requests
+      const response = await axiosPublic.post('/api/v1/user/refresh-access-token', {}, { withCredentials: true })
       return response.data
     } catch (error) {
       const message = error?.message || error?.response?.data?.message || 'Unknown error occurred on server'
