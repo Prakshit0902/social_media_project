@@ -32,7 +32,7 @@ function DashBoardLayout() {
       </main> */}
 
       {showExpandableCard && <div className="fixed top-0 right-0 z-50" >
-        <ExpandableCard />
+        {/* <ExpandableCard /> */}
       </div>}
 
       {/* Fixed navbar at bottom */}

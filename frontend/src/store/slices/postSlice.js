@@ -89,6 +89,8 @@ const postSlice = createSlice({
     reducers: {
         initializeLikedStatus: (state, action) => {
             const { posts, currentUserId } = action.payload;
+            if (!state.likesByPost) state.likesByPost = {};
+            if (!state.isLikedByPost) state.isLikedByPost = {};
             posts.forEach(post => {
                 state.likesByPost[post._id] = post.likes || 0;
                 state.isLikedByPost[post._id] = post.likedByUsers?.some(user => user._id === currentUserId) || false;
@@ -96,6 +98,7 @@ const postSlice = createSlice({
         },
         initializeSavedStatus: (state, action) => {
             const { posts, currentUserId } = action.payload;
+            if (!state.isSavedByPost) state.isSavedByPost = {};
             posts.forEach(post => {
                 if (post && post._id && Array.isArray(post.savedBy)) {
                     state.isSavedByPost[post._id] = post.savedBy.some(
@@ -113,6 +116,7 @@ const postSlice = createSlice({
             const likedPostIds = action.payload;
             state.userLikedPosts = likedPostIds;
             // Set isLikedByPost for all liked posts
+            if (!state.isLikedByPost) state.isLikedByPost = {};
             likedPostIds.forEach(postId => {
                 state.isLikedByPost[postId] = true;
             });
@@ -136,6 +140,8 @@ const postSlice = createSlice({
                 state.loading = false;
                 const { updatedPost, isLiked } = action.payload;
                 const postId = updatedPost._id;
+                if (!state.likesByPost) state.likesByPost = {};
+                if (!state.isLikedByPost) state.isLikedByPost = {};
                 state.likesByPost[postId] = updatedPost.likes;
                 state.isLikedByPost[postId] = !isLiked;
                 console.log('Like toggled successfully:', action.payload);
@@ -155,6 +161,7 @@ const postSlice = createSlice({
                 state.loading = false
                 const { updatedPost, isSaved } = action.payload;
                 const postId = updatedPost._id;
+                if (!state.isSavedByPost) state.isSavedByPost = {};
                 state.isSavedByPost[postId] = !isSaved;
                 console.log('successfully toggled save post',action.payload)
             })
